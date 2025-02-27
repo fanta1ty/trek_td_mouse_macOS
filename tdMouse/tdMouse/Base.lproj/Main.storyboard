@@ -684,7 +684,7 @@
         <!--Window Controller-->
         <scene sceneID="WS2-li-lWj">
             <objects>
-                <windowController id="q9S-7f-DXu" sceneMemberID="viewController">
+                <windowController id="q9S-7f-DXu" customClass="WindowController" customModule="tdMouse" customModuleProvider="target" sceneMemberID="viewController">
                     <window key="window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="UHe-Gd-cdw">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" fullSizeContentView="YES"/>
                         <rect key="contentRect" x="294" y="313" width="854" height="480"/>
