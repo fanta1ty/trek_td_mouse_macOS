@@ -1,0 +1,24 @@
+{
+  "originHash" : "5d4dde8d24dec84f2ef8157fa32beeb36cf583b42ba178f7dcea16c910656995",
+  "pins" : [
+    {
+      "identity" : "flyingfox",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swhitty/FlyingFox.git",
+      "state" : {
+        "revision" : "0285d3e846f48abad71d4cf143afacbc33b19b45",
+        "version" : "0.21.0"
+      }
+    },
+    {
+      "identity" : "smbclient",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/kishikawakatsumi/SMBClient.git",
+      "state" : {
+        "revision" : "e636c2b2458930770932a36d311ec9d478575b90",
+        "version" : "0.3.1"
+      }
+    }
+  ],
+  "version" : 3
+}
