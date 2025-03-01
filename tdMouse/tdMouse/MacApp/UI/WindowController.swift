@@ -8,17 +8,6 @@
 import Cocoa
 import UniformTypeIdentifiers
 
-private extension NSToolbarItem.Identifier {
-    static let navigationToolbarItemIdentifier = NSToolbarItem.Identifier("NavigationToolbarItem")
-    static let backToolbarItemIdentifier = NSToolbarItem.Identifier("BackToolbarItem")
-    static let forwardItemIdentifier = NSToolbarItem.Identifier("ForwardToolbarItem")
-    
-    static let newFolderToolbarItemIdentifier = NSToolbarItem.Identifier("NewFolderToolbarItem")
-    static let connectToServerToolbarItemIdentifier = NSToolbarItem.Identifier("ConnectToServerToolbarItem")
-    static let activitiesToolbarItemIdentifier = NSToolbarItem.Identifier("ActivitiesToolbbarItem")
-    static let searchToolbarItemIdentifier = NSToolbarItem.Identifier("SearchToolbarItem")
-}
-
 class WindowController: NSWindowController {
     override func windowDidLoad() {
         super.windowDidLoad()
@@ -31,6 +20,13 @@ class WindowController: NSWindowController {
             self,
             selector: #selector(navigationDidFinished(_:)),
             name: NavigationController.navigationDidFinished,
+            object: nil
+        )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(didStartActivities(_:)),
+            name: FilesViewController.didStartActivities,
             object: nil
         )
     }
@@ -52,11 +48,13 @@ extension WindowController: NSMenuItemValidation {
 
 // MARK: - NSToolbarDelegate
 extension WindowController: NSToolbarDelegate {
-    func toolbarAllowedItemIdentifiers(
-        _ toolbar: NSToolbar
-    ) -> [NSToolbarItem.Identifier] {
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
         [
             .navigationToolbarItemIdentifier,
+            .newFolderToolbarItemIdentifier,
+            .connectToServerToolbarItemIdentifier,
+            .activitiesToolbarItemIdentifier,
+            .searchToolbarItemIdentifier
         ]
     }
     
@@ -66,6 +64,10 @@ extension WindowController: NSToolbarDelegate {
         willBeInsertedIntoToolbar flag: Bool
     ) -> NSToolbarItem? {
         switch itemIdentifier {
+        case .navigationToolbarItemIdentifier:
+            let group = NSToolbarItemGroup(itemIdentifier: itemIdentifier)
+            return group
+
         default: return nil
         }
     }
@@ -74,6 +76,9 @@ extension WindowController: NSToolbarDelegate {
 // MARK: - NSToolbarItemValidation
 extension WindowController: NSToolbarItemValidation {
     func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+        guard let navigationController = navigationController() else {
+            return false
+        }
         return true
     }
 }
@@ -104,5 +109,11 @@ extension WindowController {
     @objc private func navigationDidFinished(_ notification: Notification) {
         guard let navigationController = navigationController() else { return }
 
+    }
+
+    @objc private func didStartActivities(_ notification: Notification) {
+        guard let toolbarItems = window?.toolbar?.items else {
+            return
+        }
     }
 }
