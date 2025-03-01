@@ -721,7 +721,7 @@
         <!--Split View Controller-->
         <scene sceneID="9Mc-6r-LL9">
             <objects>
-                <splitViewController id="m54-hO-crB" sceneMemberID="viewController">
+                <splitViewController id="m54-hO-crB" customClass="SplitViewController" customModule="tdMouse" customModuleProvider="target" sceneMemberID="viewController">
                     <splitViewItems>
                         <splitViewItem canCollapse="YES" holdingPriority="260" behavior="sidebar" id="NHE-pc-0gM"/>
                         <splitViewItem id="xJs-2l-Bsi"/>
@@ -754,10 +754,10 @@
             </objects>
             <point key="canvasLocation" x="507" y="689"/>
         </scene>
-        <!--View Controller-->
+        <!--Navigation Controller-->
         <scene sceneID="icP-2f-XPo">
             <objects>
-                <viewController id="Z9W-Za-wzn" sceneMemberID="viewController">
+                <viewController id="Z9W-Za-wzn" customClass="NavigationController" customModule="tdMouse" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="gHM-BB-0FB">
                         <rect key="frame" x="0.0" y="0.0" width="302" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
