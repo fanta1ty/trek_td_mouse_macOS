@@ -22,6 +22,17 @@ private extension NSToolbarItem.Identifier {
 class WindowController: NSWindowController {
     override func windowDidLoad() {
         super.windowDidLoad()
+
+        if let fieldEditor = window?.fieldEditor(true, for: nil) as? NSTextView {
+            _ = fieldEditor.layoutManager
+        }
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(navigationDidFinished(_:)),
+            name: NavigationController.navigationDidFinished,
+            object: nil
+        )
     }
 }
 
@@ -71,5 +82,27 @@ extension WindowController: NSToolbarItemValidation {
 extension WindowController: NSSearchFieldDelegate {
     func controlTextDidChange(_ obj: Notification) {
         
+    }
+}
+
+// MARK: - Private Functions
+extension WindowController {
+    private func navigationController() -> NavigationController? {
+        guard let splitViewController = contentViewController as? SplitViewController else {
+            return nil
+        }
+
+        let splitViewItem = splitViewController.splitViewItems[1]
+
+        guard let navigationController = splitViewItem.viewController as? NavigationController else {
+            return nil
+        }
+
+        return navigationController
+    }
+
+    @objc private func navigationDidFinished(_ notification: Notification) {
+        guard let navigationController = navigationController() else { return }
+
     }
 }
