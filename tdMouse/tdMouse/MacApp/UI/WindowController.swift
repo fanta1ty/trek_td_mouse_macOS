@@ -114,6 +114,16 @@ extension WindowController: NSToolbarDelegate {
 
             return group
 
+        case .connectToServerToolbarItemIdentifier:
+            let toolbarItem = NSToolbarItem(itemIdentifier: itemIdentifier)
+
+            toolbarItem.isBordered = true
+            toolbarItem.image = NSImage(named: "server.rack.badge.plus")
+            toolbarItem.label = NSLocalizedString("Connect", comment: "")
+            toolbarItem.action = #selector(connectToServerAction(_:))
+            
+            return toolbarItem
+
         default: return nil
         }
     }
@@ -171,5 +181,9 @@ extension WindowController {
         case 1: navigationController.forward()
         default: break
         }
+    }
+
+    @objc
+    private func connectToServerAction(_ sender: NSToolbarItem) {
     }
 }
