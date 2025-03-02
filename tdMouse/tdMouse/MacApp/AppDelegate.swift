@@ -12,7 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var windowControllers = [NSWindowController]()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-
+        ServiceDiscovery.shared.start()
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
