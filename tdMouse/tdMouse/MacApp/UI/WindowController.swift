@@ -185,5 +185,7 @@ extension WindowController {
 
     @objc
     private func connectToServerAction(_ sender: NSToolbarItem) {
+        let serverManager = ServerManager.shared
+        serverManager.connectToNewServer()
     }
 }
