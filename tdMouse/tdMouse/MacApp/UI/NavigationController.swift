@@ -20,6 +20,11 @@ class NavigationController: NSViewController {
 
     private var history = [NSViewController]()
 
+    var topViewController: NSViewController? {
+        guard !history.isEmpty else { return nil }
+        return history[current]
+    }
+    
     override func swipe(with event: NSEvent) {
         
     }
