@@ -135,6 +135,11 @@ extension WindowController: NSToolbarItemValidation {
         guard let navigationController = navigationController() else {
             return false
         }
+        
+        if item.itemIdentifier == .newFolderToolbarItemIdentifier {
+            return navigationController.topViewController is FilesViewController
+        }
+        
         return true
     }
 }
