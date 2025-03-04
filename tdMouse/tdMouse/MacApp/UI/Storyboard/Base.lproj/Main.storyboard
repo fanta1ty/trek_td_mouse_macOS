@@ -716,7 +716,7 @@
                                                     </textFieldCell>
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
-                                                        <tableCellView id="9qT-3W-4VZ">
+                                                        <tableCellView identifier="HeaderCell" id="9qT-3W-4VZ">
                                                             <rect key="frame" x="11" y="0.0" width="141" height="17"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
