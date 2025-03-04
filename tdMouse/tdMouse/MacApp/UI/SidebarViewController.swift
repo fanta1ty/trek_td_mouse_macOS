@@ -79,6 +79,14 @@ extension SidebarViewController: NSOutlineViewDelegate {
         default: return nil
         }
     }
+    
+    func outlineView(_ outlineView: NSOutlineView, shouldSelectItem item: Any) -> Bool {
+        SidebarManager.shared.isItemSelectable(item)
+    }
+    
+    func outlineViewSelectionDidChange(_ notification: Notification) {
+        
+    }
 }
 
 // MARK: - Private Functions
