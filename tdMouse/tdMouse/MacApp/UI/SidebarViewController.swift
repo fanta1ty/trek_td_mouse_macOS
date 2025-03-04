@@ -8,4 +8,22 @@
 import Cocoa
 
 class SidebarViewController: NSViewController {
+    @IBOutlet private(set) var sourceList: NSOutlineView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        sourceList.dataSource = self
+        sourceList.delegate = self
+    }
+}
+
+// MARK: - NSOutlineViewDataSource
+extension SidebarViewController: NSOutlineViewDataSource {
+    
+}
+
+// MARK: - NSOutlineViewDelegate
+extension SidebarViewController: NSOutlineViewDelegate {
+    
 }
