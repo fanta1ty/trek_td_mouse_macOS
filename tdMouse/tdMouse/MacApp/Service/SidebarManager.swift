@@ -133,4 +133,9 @@ extension SidebarManager {
             NotificationCenter.default.post(name: Self.sidebarDidUpdate, object: self)
         }
     }
+    
+    func isItemSelectable(_ item: Any) -> Bool {
+        guard let node = item as? SidebarNode else { return false }
+        return node.content is ServerNode || node.content is ShareNode
+    }
 }
