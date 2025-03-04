@@ -738,7 +738,7 @@
                                                                 <outlet property="textField" destination="ll5-Sf-hqm" id="XN4-xC-bre"/>
                                                             </connections>
                                                         </tableCellView>
-                                                        <tableCellView identifier="DataCell" id="zR8-ag-b0c" customClass="SidebarCellView" customModule="FileBrowser" customModuleProvider="target">
+                                                        <tableCellView identifier="DataCell" id="zR8-ag-b0c" customClass="SidebarCellView" customModule="tdMouse" customModuleProvider="target">
                                                             <rect key="frame" x="11" y="17" width="141" height="17"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
@@ -819,8 +819,18 @@
                         <viewLayoutGuide key="safeArea" id="QTO-aq-49M"/>
                         <viewLayoutGuide key="layoutMargins" id="uAU-fc-jRW"/>
                     </view>
+                    <connections>
+                        <outlet property="sourceList" destination="dQd-LE-cBa" id="gdL-dX-oBT"/>
+                    </connections>
                 </viewController>
                 <customObject id="77H-KU-pkp" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+                <menu id="6Ot-mA-aM6">
+                    <items>
+                        <menuItem title="Forget Server" id="94Q-ZS-ulu">
+                            <modifierMask key="keyEquivalentModifierMask"/>
+                        </menuItem>
+                    </items>
+                </menu>
             </objects>
             <point key="canvasLocation" x="507" y="689"/>
         </scene>
