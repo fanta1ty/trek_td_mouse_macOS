@@ -122,3 +122,43 @@ extension FileUploadUserInfoKey {
   static let share = FileUploadUserInfoKey(rawValue: "share")
   static let path = FileUploadUserInfoKey(rawValue: "path")
 }
+
+class FileDownload: FileTransfer {
+  static let didFinish = Notification.Name("FileDownloadDidFinish")
+
+  let displayName: String
+  var state: TransferState
+  var progressHandler: (_ state: TransferState) -> Void
+
+  let id: UUID
+  private let source: String  // Remote file path
+  private let destination: URL // Local destination path
+  private let treeAccessor: TreeAccessor
+
+  init(source: String, destination: URL, accessor: TreeAccessor) {
+    id = UUID()
+    self.source = source
+    self.destination = destination
+    self.treeAccessor = accessor
+    self.displayName = (source as NSString).lastPathComponent
+    self.state = .queued
+    self.progressHandler = { _ in }
+  }
+
+  func start() async {
+    state = .started(.file(progress: 0.0, numberOfBytes: 0))
+    progressHandler(state)
+
+    do {
+        let data = try await treeAccessor.download(path: source)
+      try data.write(to: destination)
+      
+      state = .completed(.file(progress: 1.0, numberOfBytes: Int64(data.count)))
+      NotificationCenter.default.post(name: FileDownload.didFinish, object: self)
+    } catch {
+      state = .failed(error)
+    }
+    
+    progressHandler(state)
+  }
+}
