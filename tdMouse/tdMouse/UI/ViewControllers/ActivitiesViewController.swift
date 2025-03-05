@@ -85,7 +85,7 @@ extension ActivitiesViewController: NSTableViewDelegate {
       cell.messageLabel.stringValue = NSLocalizedString("Queued", comment: "")
     case .started(let progress):
       switch progress {
-      case .file(let progress, let numberOfBytes):
+      case .file(let progress, let numberOfBytes, speed:_):
         cell.imageView?.image = Icons.file
         cell.textField?.stringValue = transfer.name
 
@@ -115,7 +115,7 @@ extension ActivitiesViewController: NSTableViewDelegate {
       }
     case .completed(let progress):
       switch progress {
-      case .file(_, let numberOfBytes):
+      case .file(_, let numberOfBytes, speed: _):
         cell.imageView?.image = Icons.file
         cell.textField?.stringValue = transfer.name
         cell.progressIndicator.isHidden = true
