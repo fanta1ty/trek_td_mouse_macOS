@@ -61,7 +61,8 @@ class FilesViewController: NSViewController {
         outlineView.delegate = self
         
         outlineView.doubleAction = #selector(doubleAction(_:))
-        outlineView.registerForDraggedTypes([.fileURL])
+        outlineView.registerForDraggedTypes([.fileURL, .filePromise])
+        outlineView.setDraggingSourceOperationMask(.copy, forLocal: false)
         
         for column in outlineView.tableColumns {
             column.sortDescriptorPrototype = NSSortDescriptor(key: column.identifier.rawValue, ascending: true)
@@ -444,11 +445,14 @@ extension FilesViewController: NSOutlineViewDataSource {
     
     func outlineView(_ outlineView: NSOutlineView, pasteboardWriterForItem item: Any) -> (any NSPasteboardWriting)? {
         guard let fileNode = item as? FileNode else { return nil }
+        let fileURL = URL(fileURLWithPath: fileNode.path)
         
-        let pasteboardItem = NSPasteboardItem()
-        pasteboardItem.setString(fileNode.id.rawValue, forType: .fileURL)
+        print("Dragging started for:", fileURL.path)  // Debugging log
         
-        return pasteboardItem
+        let filePromise = NSFilePromiseProvider(fileType: UTType.data.identifier, delegate: self)
+        filePromise.userInfo = fileURL
+        filePromise.delegate = self
+        return filePromise
     }
     
     func outlineView(_ outlineView: NSOutlineView, validateDrop info: any NSDraggingInfo, proposedItem item: Any?, proposedChildIndex index: Int) -> NSDragOperation {
@@ -467,7 +471,8 @@ extension FilesViewController: NSOutlineViewDataSource {
                 if let parent = dirTree.parent(of: fileNode) {
                     outlineView.setDropItem(parent, dropChildIndex: index)
                 } else {
-                    outlineView.setDropItem(nil, dropChildIndex: NSOutlineViewDropOnItemIndex)
+//                    outlineView.setDropItem(nil, dropChildIndex: NSOutlineViewDropOnItemIndex)
+                    return .copy
                 }
             }
             return .move
@@ -728,6 +733,41 @@ extension FilesViewController: NSMenuItemValidation {
         default:
             return false
         }
+    }
+}
+
+extension FilesViewController: NSDraggingSource {
+    func draggingSession(_ session: NSDraggingSession, sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
+        return .copy
+    }
+    
+    func pasteboardWriter(for item: Any) -> NSPasteboardWriting? {
+        guard let fileNode = item as? FileNode else { return nil }
+        let fileURL = URL(fileURLWithPath: fileNode.path)
+        
+        let filePromise = NSFilePromiseProvider(fileType: "public.item", delegate: self)
+        filePromise.userInfo = fileURL
+        return filePromise
+    }
+}
+
+extension FilesViewController: NSFilePromiseProviderDelegate {
+    func filePromiseProvider(_ filePromiseProvider: NSFilePromiseProvider, fileNameForType fileType: String) -> String {
+        guard let fileURL = filePromiseProvider.userInfo as? URL else { return "Untitled" }
+        return fileURL.lastPathComponent
+    }
+    
+    func filePromiseProvider(
+        _ filePromiseProvider: NSFilePromiseProvider,
+        writePromiseTo url: URL,
+        completionHandler: @escaping (Error?) -> Void
+    ) {
+        guard let fileNode = outlineView.item(atRow: outlineView.selectedRow) as? FileNode else {
+            showAlert("No file selected", message: "Please select a file to download.")
+            return
+        }
+        
+        startDownload(fileNode: fileNode, to: url)
     }
 }
 
