@@ -90,6 +90,19 @@ extension ActivitiesViewController: NSTableViewDataSource {
 }
 
 extension ActivitiesViewController: NSTableViewDelegate {
+    func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
+        let cellWidth = tableView.bounds.width
+        let transferQueue = TransferQueue.shared
+        let reversedIndex = tableView.numberOfRows - 1 - row
+        let transfer = transferQueue.transfers[reversedIndex]
+        
+        let cell = ActivityCell(frame: .zero)
+        cell.textField?.stringValue = transfer.name
+        cell.messageLabel.stringValue = messageForState(transfer.state)
+        
+        return cell.calculateHeight(for: cellWidth)
+    }
+    
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cellIdentifier = NSUserInterfaceItemIdentifier("ActivityCell")
         let cell = tableView.makeView(withIdentifier: cellIdentifier, owner: nil) as? ActivityCell ?? ActivityCell()
@@ -153,6 +166,41 @@ extension ActivitiesViewController: NSTableViewDelegate {
             cell.textField?.stringValue = transfer.name
             cell.progressIndicator.isHidden = true
             cell.messageLabel.stringValue = error.localizedDescription
+        }
+    }
+    
+    private func messageForState(_ state: TransferState) -> String {
+        switch state {
+        case .queued:
+            return NSLocalizedString("Queued", comment: "")
+        case .started(let progress):
+            switch progress {
+            case .file(let progress, let numberOfBytes, _):
+                let progressBytes = ByteCountFormatter.string(
+                    fromByteCount: Int64(Double(numberOfBytes) * progress),
+                    countStyle: .file
+                )
+                let totalBytes = ByteCountFormatter.string(
+                    fromByteCount: numberOfBytes,
+                    countStyle: .file
+                )
+                return NSLocalizedString("\(progressBytes) of \(totalBytes)", comment: "")
+            case .directory(let completedFiles, let fileBeingTransferred, _):
+                if let fileBeingTransferred {
+                    return NSLocalizedString("\(fileBeingTransferred.lastPathComponent) in progress", comment: "")
+                } else {
+                    return NSLocalizedString("\(completedFiles) files uploaded", comment: "")
+                }
+            }
+        case .completed(let progress):
+            switch progress {
+            case .file(_, let numberOfBytes, _):
+                return ByteCountFormatter.string(fromByteCount: numberOfBytes, countStyle: .file)
+            case .directory(_, _, let bytesSent):
+                return ByteCountFormatter.string(fromByteCount: bytesSent, countStyle: .file)
+            }
+        case .failed(let error):
+            return error.localizedDescription
         }
     }
 }
