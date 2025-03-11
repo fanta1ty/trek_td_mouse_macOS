@@ -8,7 +8,7 @@ class WindowController: NSWindowController {
   private let backHistoryMenu = NSMenu()
   private let forwardHistoryMenu = NSMenu()
 
-  private let activitiesViewController = ActivitiesViewController.instantiate()
+  private let activitiesViewController = ActivitiesViewController()
   private let popover = NSPopover()
 
   private var searchField: NSSearchField?
