@@ -55,23 +55,22 @@ class ActivitiesViewController: NSViewController {
     
     @objc
     private func didAddTransfer(_ notification: Notification) {
-        guard let userInfo = notification.userInfo else { return }
-        guard let index = userInfo[TransferQueueUserInfoKey.index] as? Int else { return }
+        guard let userInfo = notification.userInfo,
+              let index = userInfo[TransferQueueUserInfoKey.index] as? Int else { return }
         
         let reversedIndex = tableView.numberOfRows - 1 - index
-        tableView.insertRows(at: [reversedIndex])
-        
+        tableView.insertRows(at: IndexSet(integer: reversedIndex))
         tableView.reloadData()
     }
     
     @objc
     private func progressDidChange(_ notification: Notification) {
-        guard let userInfo = notification.userInfo else { return }
-        guard let context = userInfo[TransferQueueUserInfoKey.context] as? TransferContext else { return }
-        guard context.index < tableView.numberOfRows else { return }
+        guard let userInfo = notification.userInfo,
+              let context = userInfo[TransferQueueUserInfoKey.context] as? TransferContext,
+              context.index < tableView.numberOfRows else { return }
         
         let reversedIndex = tableView.numberOfRows - 1 - context.index
-        tableView.reloadData(forRowIndexes: [reversedIndex], columnIndexes: [0])
+        tableView.reloadData(forRowIndexes: IndexSet(integer: reversedIndex), columnIndexes: IndexSet(integer: 0))
     }
     
     @IBAction
@@ -79,7 +78,7 @@ class ActivitiesViewController: NSViewController {
         let deleted = TransferQueue.shared.clearFinishedTransfers()
         
         for index in deleted {
-            tableView.removeRows(at: [tableView.numberOfRows - 1 - index])
+            tableView.removeRows(at: IndexSet(integer: tableView.numberOfRows - 1 - index))
         }
     }
 }
