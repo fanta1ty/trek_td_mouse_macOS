@@ -31,6 +31,8 @@ class ActivityCell: NSTableCellView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: NSFont.systemFontSize)
         label.textColor = .labelColor
+        label.lineBreakMode = .byWordWrapping
+        label.maximumNumberOfLines = 2
         return label
     }()
     
@@ -73,5 +75,20 @@ class ActivityCell: NSTableCellView {
             messageLabel.trailingAnchor.constraint(equalTo: cellTextField.trailingAnchor),
             messageLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -6)
         ])
+    }
+    
+    func calculateHeight(for width: CGFloat) -> CGFloat {
+        let textHeight = cellTextField.attributedStringValue.boundingRect(
+            with: NSSize(width: width - 40, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin]
+        ).height
+        
+        let messageHeight = messageLabel.attributedStringValue.boundingRect(
+            with: NSSize(width: width - 40, height: .greatestFiniteMagnitude),
+            options: [.usesLineFragmentOrigin]
+        ).height
+        
+        let baseHeight: CGFloat = 20 // Spacing & padding
+        return max(54, baseHeight + textHeight + messageHeight + (progressIndicator.isHidden ? 0 : 16))
     }
 }
