@@ -3,11 +3,12 @@ import Cocoa
 class ActivityCell: NSTableCellView {
     let progressIndicator: NSProgressIndicator = {
         let progress = NSProgressIndicator()
-        progress.isIndeterminate = false
-        progress.style = .bar
-        progress.controlSize = .small
         progress.translatesAutoresizingMaskIntoConstraints = false
+        progress.controlSize = .regular
+        progress.isIndeterminate = false
         progress.isHidden = true
+        progress.minValue = 0
+        progress.maxValue = 1
         return progress
     }()
     
@@ -90,5 +91,80 @@ class ActivityCell: NSTableCellView {
         
         let baseHeight: CGFloat = 20 // Spacing & padding
         return max(54, baseHeight + textHeight + messageHeight + (progressIndicator.isHidden ? 0 : 16))
+    }
+    
+func configure(with transfer: TransferInfo) {
+        textField?.stringValue = transfer.name
+        messageLabel.stringValue = messageForState(transfer.state)
+        
+        switch transfer.state {
+        case .queued:
+            imageView?.image = Icons.file
+            progressIndicator.isHidden = true
+            progressIndicator.stopAnimation(nil)
+            
+        case .started(let progress):
+            progressIndicator.isHidden = false
+            progressIndicator.isIndeterminate = false
+            progressIndicator.doubleValue = progressValue(for: progress)
+            switch progress {
+            case .file:
+                cellImageView.image = Icons.file
+            case .directory:
+                cellImageView.image = Icons.folder
+            }
+            
+        case .completed:
+            progressIndicator.isHidden = true
+            progressIndicator.stopAnimation(nil)
+            
+        case .failed:
+            progressIndicator.isHidden = true
+            progressIndicator.stopAnimation(nil)
+        }
+    }
+    
+    private func progressValue(for progress: TransferProgress) -> Double {
+        switch progress {
+        case .file(let value, _, _):
+            return value
+        case .directory:
+            return 0 // Indeterminate progress for directories
+        }
+    }
+    
+    private func messageForState(_ state: TransferState) -> String {
+        switch state {
+        case .queued:
+            return NSLocalizedString("Queued", comment: "")
+        case .started(let progress):
+            switch progress {
+            case .file(let progress, let numberOfBytes, _):
+                let progressBytes = ByteCountFormatter.string(
+                    fromByteCount: Int64(Double(numberOfBytes) * progress),
+                    countStyle: .file
+                )
+                let totalBytes = ByteCountFormatter.string(
+                    fromByteCount: numberOfBytes,
+                    countStyle: .file
+                )
+                return NSLocalizedString("\(progressBytes) of \(totalBytes)", comment: "")
+            case .directory(let completedFiles, let fileBeingTransferred, _):
+                if let fileBeingTransferred {
+                    return NSLocalizedString("\(fileBeingTransferred.lastPathComponent) in progress", comment: "")
+                } else {
+                    return NSLocalizedString("\(completedFiles) files uploaded", comment: "")
+                }
+            }
+        case .completed(let progress):
+            switch progress {
+            case .file(_, let numberOfBytes, _):
+                return ByteCountFormatter.string(fromByteCount: numberOfBytes, countStyle: .file)
+            case .directory(_, _, let bytesSent):
+                return ByteCountFormatter.string(fromByteCount: bytesSent, countStyle: .file)
+            }
+        case .failed(let error):
+            return error.localizedDescription
+        }
     }
 }
