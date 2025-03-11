@@ -13,7 +13,7 @@ class ActivityCell: NSTableCellView {
     }()
     
     let messageLabel: NSTextField = {
-       let label = NSTextField(labelWithString: "")
+        let label = NSTextField(labelWithString: "")
         label.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
         label.textColor = .secondaryLabelColor
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -93,7 +93,7 @@ class ActivityCell: NSTableCellView {
         return max(54, baseHeight + textHeight + messageHeight + (progressIndicator.isHidden ? 0 : 16))
     }
     
-func configure(with transfer: TransferInfo) {
+    func configure(with transfer: TransferInfo) {
         textField?.stringValue = transfer.name
         messageLabel.stringValue = messageForState(transfer.state)
         
