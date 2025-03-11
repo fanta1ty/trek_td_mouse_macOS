@@ -312,7 +312,7 @@ private func parseRangeHeader(_ rangeHeader: String) -> Range<UInt64>? {
 private func mimeTypeForPath(path: String) -> String {
     let url = URL(fileURLWithPath: path)
     let pathExtension = url.pathExtension.lowercased()
-    
+
     let mimeTypes: [String: String] = [
         "txt": "text/plain",
         "html": "text/html",
@@ -327,8 +327,14 @@ private func mimeTypeForPath(path: String) -> String {
         "webp": "image/webp",
         "tiff": "image/tiff",
         "ico": "image/x-icon",
-        "svg": "image/svg+xml"
+        "svg": "image/svg+xml",
+        "pdf": "application/pdf",
+        "xls": "application/vnd.ms-excel",
+        "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "ppt": "application/vnd.ms-powerpoint",
+        "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     ]
-    
+
     return mimeTypes[pathExtension] ?? "application/octet-stream"
 }
+
