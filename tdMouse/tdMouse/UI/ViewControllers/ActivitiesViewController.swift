@@ -1,21 +1,44 @@
 import Cocoa
 
 class ActivitiesViewController: NSViewController {
-    @IBOutlet private var tableView: NSTableView!
+    private var tableView: NSTableView!
     
-    static func instantiate() -> Self {
-        let storyboard = NSStoryboard(name: "Activities", bundle: nil)
-        return storyboard.instantiateInitialController() as! Self
+    override func loadView() {
+        view = NSView()
+        view.wantsLayer = true
+        view.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        
+        setupTableView()
+        setupObservers()
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    private func setupTableView() {
+        let scrollView = NSScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.hasVerticalScroller = true
         
-        tableView.dataSource = self
-        tableView.delegate = self
-        
+        tableView = NSTableView()
         tableView.rowHeight = 54
+        tableView.delegate = self
+        tableView.dataSource = self
         
+        let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("ActivityColumn"))
+        column.title = "Activities"
+        column.width = 300
+        tableView.addTableColumn(column)
+        
+        scrollView.documentView = tableView
+        view.addSubview(scrollView)
+        
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+    }
+    
+    private func setupObservers() {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(didAddTransfer(_:)),
@@ -63,8 +86,7 @@ class ActivitiesViewController: NSViewController {
 
 extension ActivitiesViewController: NSTableViewDataSource {
     func numberOfRows(in tableView: NSTableView) -> Int {
-        let transferQueue = TransferQueue.shared
-        return transferQueue.transfers.count
+        TransferQueue.shared.transfers.count
     }
 }
 
@@ -77,67 +99,61 @@ extension ActivitiesViewController: NSTableViewDelegate {
         let reversedIndex = tableView.numberOfRows - 1 - row
         let transfer = transferQueue.transfers[reversedIndex]
         
+        configureCell(cell, with: transfer)
+        
+        return cell
+    }
+    
+    private func configureCell(_ cell: ActivityCell, with transfer: TransferInfo) {
         switch transfer.state {
         case .queued:
             cell.imageView?.image = Icons.file
             cell.textField?.stringValue = transfer.name
             cell.progressIndicator.isHidden = true
             cell.messageLabel.stringValue = NSLocalizedString("Queued", comment: "")
+            
         case .started(let progress):
             switch progress {
-            case .file(let progress, let numberOfBytes, speed:_):
+            case .file(let progress, let numberOfBytes, _):
                 cell.imageView?.image = Icons.file
                 cell.textField?.stringValue = transfer.name
-                
                 cell.progressIndicator.isHidden = false
                 cell.progressIndicator.isIndeterminate = false
                 cell.progressIndicator.doubleValue = progress
                 
                 let progressBytes = ByteCountFormatter.string(fromByteCount: Int64(Double(numberOfBytes) * progress), countStyle: .file)
                 let totalBytes = ByteCountFormatter.string(fromByteCount: numberOfBytes, countStyle: .file)
-                let message = NSLocalizedString("\(progressBytes) of \(totalBytes)", comment: "")
-                cell.messageLabel.stringValue = message
+                cell.messageLabel.stringValue = NSLocalizedString("\(progressBytes) of \(totalBytes)", comment: "")
+                
             case .directory(let completedFiles, let fileBeingTransferred, _):
                 cell.imageView?.image = Icons.folder
-                
-                if let fileBeingTransferred {
-                    cell.textField?.stringValue = NSLocalizedString("\(fileBeingTransferred.lastPathComponent) in \(transfer.name)", comment: "")
-                } else {
-                    cell.textField?.stringValue = transfer.name
-                }
-                
+                cell.textField?.stringValue = fileBeingTransferred?.lastPathComponent ?? transfer.name
                 cell.progressIndicator.isHidden = false
                 cell.progressIndicator.isIndeterminate = true
                 cell.progressIndicator.startAnimation(nil)
-                
-                let message = NSLocalizedString("\(completedFiles) files uploaded", comment: "")
-                cell.messageLabel.stringValue = message
+                cell.messageLabel.stringValue = NSLocalizedString("\(completedFiles) files uploaded", comment: "")
             }
+            
         case .completed(let progress):
             switch progress {
-            case .file(_, let numberOfBytes, speed: _):
+            case .file(_, let numberOfBytes, _):
                 cell.imageView?.image = Icons.file
                 cell.textField?.stringValue = transfer.name
                 cell.progressIndicator.isHidden = true
+                cell.messageLabel.stringValue = ByteCountFormatter.string(fromByteCount: numberOfBytes, countStyle: .file)
                 
-                let message = ByteCountFormatter.string(fromByteCount: numberOfBytes, countStyle: .file)
-                cell.messageLabel.stringValue = message
             case .directory(_, _, let bytesSent):
                 cell.imageView?.image = Icons.folder
-                
                 cell.textField?.stringValue = transfer.name
                 cell.progressIndicator.isHidden = true
-                
-                let message = ByteCountFormatter.string(fromByteCount: bytesSent, countStyle: .file)
-                cell.messageLabel.stringValue = message
+                cell.messageLabel.stringValue = ByteCountFormatter.string(fromByteCount: bytesSent, countStyle: .file)
             }
+            
         case .failed(let error):
             cell.imageView?.image = Icons.file
             cell.textField?.stringValue = transfer.name
             cell.progressIndicator.isHidden = true
             cell.messageLabel.stringValue = error.localizedDescription
         }
-        
-        return cell
     }
 }
