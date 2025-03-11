@@ -92,7 +92,7 @@ extension ActivitiesViewController: NSTableViewDataSource {
 extension ActivitiesViewController: NSTableViewDelegate {
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cellIdentifier = NSUserInterfaceItemIdentifier("ActivityCell")
-        guard let cell = tableView.makeView(withIdentifier: cellIdentifier, owner: nil) as? ActivityCell else { return nil }
+        let cell = tableView.makeView(withIdentifier: cellIdentifier, owner: nil) as? ActivityCell ?? ActivityCell()
         
         let transferQueue = TransferQueue.shared
         let reversedIndex = tableView.numberOfRows - 1 - row
