@@ -114,7 +114,8 @@ extension SidebarViewController: NSOutlineViewDelegate {
 
     let sidebarManager = SidebarManager.shared
     let sessionManager = SessionManager.shared
-
+      
+      
     guard let node = sidebarManager.selectRow(item) else {
       sourceList.deselectRow(sourceList.selectedRow)
       return

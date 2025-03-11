@@ -29,6 +29,14 @@ class ConnectServerWindowController: NSWindowController {
         NSApp.runModal(for: window)
         return .OK
     }
+    
+    func presentModal(from parentWindow: NSWindow, completion: @escaping (NSApplication.ModalResponse) -> Void) {
+        guard let window = self.window else { return }
+        
+        parentWindow.beginSheet(window) { response in
+            completion(response)
+        }
+    }
 
     override func windowDidLoad() {
         super.windowDidLoad()
@@ -40,5 +48,10 @@ class ConnectServerWindowController: NSWindowController {
         guard let window else { return }
         NSApp.stopModal()
         window.close()
+    }
+    
+    override func close() {
+        NSApp.stopModal()
+        super.close()
     }
 }

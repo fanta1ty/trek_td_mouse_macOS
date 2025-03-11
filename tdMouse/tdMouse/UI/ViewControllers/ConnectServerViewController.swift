@@ -32,11 +32,18 @@ class ConnectServerViewController: NSViewController {
         portField.stringValue = "445"
         
         connectButton.isEnabled = false
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(windowWillClose), name: NSWindow.willCloseNotification, object: view.window)
     }
     
     override func viewWillAppear() {
         super.viewWillAppear()
         view.window?.makeFirstResponder(serverField)
+    }
+    
+    override func viewWillDisappear() {
+        super.viewWillDisappear()
+        NSApp.stopModal()
     }
     
     private func setupUI() {
@@ -120,8 +127,12 @@ class ConnectServerViewController: NSViewController {
             view.widthAnchor.constraint(equalToConstant: 350),
             view.heightAnchor.constraint(equalToConstant: 280)
         ])
-        
-        
+    }
+    
+    @objc private func windowWillClose() {
+        if let window = view.window {
+            window.sheetParent?.endSheet(window, returnCode: .cancel)
+        }
     }
 }
 
