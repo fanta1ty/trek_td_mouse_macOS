@@ -10,84 +10,144 @@ import SMBClient
 import Foundation
 
 class FileTransferViewModel: ObservableObject {
-    @Published var credentials = SMBServerCredentials()
-    @Published var isConnected: Bool = false
-    @Published var isConnecting: Bool = false
-    @Published var connectionError: String? = nil
+    // MARK: - Published Properties
+    @Published var credentials: SMBServerCredentials
+    @Published var isCredentialsValid: Bool = false
+    @Published var shareName: String = ""
+    @Published var currentDirectory: String = ""
+    @Published var connectionState: ConnectionState = .disconnected
+    @Published var transferState: TransferOperation = .none
+    @Published var availableShares: [String] = []
+    @Published var files: [File] = []
+    @Published var transferProgress: Double = 0.0
+    @Published var errorMessage: String = ""
     
-    @Published var remoteCurrentPath: String = "/"
-    @Published var localCurrentPath: String = FileManager.default.homeDirectoryForCurrentUser.path
+    // MARK: - Private Properties
+    private var client: SMBClient?
+    private var cancellables = Set<AnyCancellable>()
     
-    @Published var remoteFiles: [FileItem] = []
-    @Published var localFiles: [FileItem] = []
-    
-    @Published var selectedRemoteFiles: Set<FileItem> = []
-    @Published var selectedLocalFiles: Set<FileItem> = []
-    
-    @Published var transferTasks: [TransferTask] = []
-    @Published var completedTasks: [TransferTask] = []
-    
-    private var smbClient: SMBClient?
-    private var cancellables: Set<AnyCancellable> = []
-    
-    func connect() async {
-        isConnecting = true
-        connectionError = nil
+    init(credentials: SMBServerCredentials? = nil) {
+        self.credentials = credentials ?? SMBServerCredentials(
+            host: "192.168.50.24",
+            username: "sambauser",
+            password: "123456",
+            domain: "share"
+        )
         
-        let client = SMBClient(host: credentials.host, port: credentials.port)
+        $credentials
+            .map { credential in
+                !credential.host.isEmpty &&
+                !credential.username.isEmpty &&
+                !credential.password.isEmpty
+            }
+            .assign(to: &$isCredentialsValid)
+    }
+    
+    // MARK: - Public Methods
+    /// Connect to the SMB server
+    func connect() async throws {
+        guard isCredentialsValid else {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                
+                self.errorMessage = "Invalid credentials"
+                self.connectionState = .error("Invalid credentials")
+            }
+            
+            throw NSError(domain: "SMBClientError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid credentials"])
+        }
+        
+        await MainActor.run { [weak self] in
+            guard let self else { return }
+            
+            self.connectionState = .connecting
+            self.errorMessage = ""
+        }
         
         do {
-            try await client.login(username: credentials.username, password: credentials.password)
-            try await client.connectShare(credentials.sharePoint)
+            let newClient = SMBClient(host: credentials.host, port: credentials.port)
+            try await newClient.login(username: credentials.username, password: credentials.password)
             
-            smbClient = client
-            isConnected = true
-            isConnecting = false
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.client = newClient
+                self.connectionState = .connected
+            }
             
-            await loadRemoteFiles()
-            loadLocalFiles()
+            // Fetch available shares after successful connection
+            try await fetchShares()
         } catch {
-            connectionError = error.localizedDescription
-            isConnecting = false
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.connectionState = .error(error.localizedDescription)
+                self.errorMessage = "Connection failed: \(error.localizedDescription)"
+            }
+            throw error
         }
     }
     
-    func disconnect() {
-        smbClient = nil
-        isConnected = false
-        remoteFiles = []
-        selectedRemoteFiles = []
-    }
-    
-    func loadRemoteFiles() async {
-        guard let client = smbClient else { return }
+    /// Fetch available shares from the server
+    func fetchShares() async throws {
+        guard let client, connectionState == .connected else {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Not connected to server"
+            }
+            throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
+        }
+        
+        await MainActor.run { [weak self] in
+            guard let self else { return }
+            self.transferState = .listing("shares")
+        }
         
         do {
-            let path = remoteCurrentPath == "/" ? "" : remoteCurrentPath
-            let items = try await client.listDirectory(path: path)
-            
-            let files = items.map { item -> FileItem in
-                let fullPath = path.isEmpty ? item.name : "\(path)/\(item.name)"
-                return FileItem(
-                    name: item.name,
-                    path: fullPath,
-                    isDirectory: item.isDirectory,
-                    size: Int64(item.size),
-                    modificationDate: item.creationTime
-                )
-            }
+            let shares = try await client.listShares()
             
             await MainActor.run { [weak self] in
                 guard let self else { return }
                 
-                self.remoteFiles = files
+                self.availableShares = shares.map({ $0.name })
+                self.transferState = .none
             }
         } catch {
-            print("Error loading remote files: \(error)")
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.transferState = .none
+                self.errorMessage = "Failed to list shares: \(error.localizedDescription)"
+            }
         }
     }
     
-    func loadLocalFiles() {
+    /// Disconnect from the SMB server
+    func disconnect() async throws {
+        guard let client else {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.connectionState = .disconnected
+            }
+            return
+        }
         
+        do {
+            if connectionState == .connected {
+                try await client.disconnectShare()
+                try await client.logoff()
+            }
+            
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.client = nil
+                self.connectionState = .disconnected
+                self.availableShares = []
+                self.files = []
+            }
+        } catch {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Disconnect failed: \(error.localizedDescription)"
+            }
+            throw error
+        }
     }
 }

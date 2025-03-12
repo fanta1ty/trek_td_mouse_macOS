@@ -4,31 +4,28 @@
     "Connect" : {
 
     },
-    "Connect to TD Mouse" : {
+    "Connect to Server" : {
 
     },
-    "Connecting..." : {
+    "Disconnect" : {
 
     },
-    "Connection" : {
-
-    },
-    "Host" : {
+    "New Folder" : {
 
     },
     "Not connected" : {
 
     },
-    "Password" : {
+    "Refresh" : {
 
     },
-    "Port" : {
+    "Server" : {
 
     },
-    "Share Point" : {
+    "TD Mouse" : {
 
     },
-    "Username" : {
+    "Upload File" : {
 
     }
   },

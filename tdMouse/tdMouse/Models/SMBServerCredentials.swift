@@ -10,6 +10,19 @@ struct SMBServerCredentials {
     var port: Int = 445
     var username: String = "sambauser"
     var password: String = "123456"
-    var domain: String = ""
-    var sharePoint: String = "share"
+    var domain: String = "share"
+    
+    init(
+        host: String,
+        port: Int = 445,
+        username: String,
+        password: String,
+        domain: String = "share"
+    ) {
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.domain = domain
+    }
 }
