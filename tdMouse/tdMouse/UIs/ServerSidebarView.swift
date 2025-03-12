@@ -6,16 +6,16 @@
 //
 
 import SwiftUI
-import Combine
 
-struct SidebarView: View {
+struct ServerSidebarView: View {
     @ObservedObject var viewModel: FileTransferViewModel
     
     var body: some View {
         List {
             Section("Server") {
                 if viewModel.connectionState == .connected {
-                    
+                    Text(viewModel.credentials.host)
+                        .font(.subheadline)
                 } else {
                     Text("Not connected")
                         .font(.subheadline)
@@ -23,5 +23,13 @@ struct SidebarView: View {
                 }
             }
         }
+        .listStyle(SidebarListStyle())
+        .frame(minWidth: 180)
+    }
+}
+
+struct ServerSidebarView_Previews: PreviewProvider {
+    static var previews: some View {
+        ServerSidebarView(viewModel: FileTransferViewModel())
     }
 }

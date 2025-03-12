@@ -11,7 +11,10 @@ import SMBClient
 
 struct FileTransferView: View {
     @StateObject private var viewModel: FileTransferViewModel = .init()
-    @State private var isConnectSheetPresented: Bool = false
+    @State private var isConnectSheetPresented = false
+    @State private var isCreateFolderSheetPresented = false
+    @State private var isImportFilePickerPresented = false
+    @State private var newFolderName = ""
     
     // Notification observers for menu commands
     private let connectObserver = NotificationCenter.default.publisher(
@@ -27,16 +30,18 @@ struct FileTransferView: View {
         for: .init("RefreshFileList"), object: nil
     )
     
-    @State private var selectedFile: File?
-    @State private var isFileActionSheetPresented = false
-    @State private var isCreateFolderSheetPresented = false
-    @State private var newFolderName = ""
-    @State private var isImportFilePickerPresented = false
-    @State private var downloadDestination: URL?
-    
     var body: some View {
         NavigationView {
-            SidebarView(viewModel: viewModel)
+            ServerSidebarView(viewModel: viewModel)
+            
+            // Main content with file listing
+            if viewModel.connectionState == .connected {
+            
+            } else {
+                DisconnectedPlaceholderView {
+                    isConnectSheetPresented.toggle()
+                }
+            }
         }
         .navigationTitle("TD Mouse")
         .toolbar {
@@ -52,5 +57,11 @@ struct FileTransferView: View {
                 })
             }
         }
+    }
+}
+
+struct FileTransferView_Previews: PreviewProvider {
+    static var previews: some View {
+        FileTransferView()
     }
 }
