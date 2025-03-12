@@ -1,7 +1,7 @@
 import Cocoa
 
 class SplitViewController: NSSplitViewController {
-  override func viewDidLoad() {
-    super.viewDidLoad()
-  }
+    override func viewDidLoad() {
+        super.viewDidLoad()
+    }
 }
