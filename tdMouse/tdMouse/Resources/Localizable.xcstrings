@@ -1,19 +1,34 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Activities" : {
-
-    },
     "Connect" : {
 
     },
-    "New Folder" : {
+    "Connect to TD Mouse" : {
 
     },
-    "Queued" : {
-      "comment" : "(progressBytes) of (totalBytes)"
+    "Connecting..." : {
+
     },
-    "untitled folder" : {
+    "Connection" : {
+
+    },
+    "Host" : {
+
+    },
+    "Not connected" : {
+
+    },
+    "Password" : {
+
+    },
+    "Port" : {
+
+    },
+    "Share Point" : {
+
+    },
+    "Username" : {
 
     }
   },

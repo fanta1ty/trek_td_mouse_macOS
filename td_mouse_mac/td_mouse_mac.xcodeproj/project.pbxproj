@@ -6,50 +6,41 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		B2B1B2A12D70D5FE00AE20C3 /* FlyingFox in Frameworks */ = {isa = PBXBuildFile; productRef = B2B1B2A02D70D5FE00AE20C3 /* FlyingFox */; };
-		B2B1B2A32D70D5FE00AE20C3 /* FlyingSocks in Frameworks */ = {isa = PBXBuildFile; productRef = B2B1B2A22D70D5FE00AE20C3 /* FlyingSocks */; };
-		B2B1B2A62D70D60F00AE20C3 /* SMBClient in Frameworks */ = {isa = PBXBuildFile; productRef = B2B1B2A52D70D60F00AE20C3 /* SMBClient */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
-		B2B1B28D2D70D57B00AE20C3 /* tdMouse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tdMouse.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B2008FC52D819CF80078E253 /* td_mouse_mac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = td_mouse_mac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		B2B1B28F2D70D57B00AE20C3 /* tdMouse */ = {
+		B2008FC72D819CF80078E253 /* td_mouse_mac */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = tdMouse;
+			path = td_mouse_mac;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		B2B1B28A2D70D57B00AE20C3 /* Frameworks */ = {
+		B2008FC22D819CF80078E253 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B2B1B2A62D70D60F00AE20C3 /* SMBClient in Frameworks */,
-				B2B1B2A12D70D5FE00AE20C3 /* FlyingFox in Frameworks */,
-				B2B1B2A32D70D5FE00AE20C3 /* FlyingSocks in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		B2B1B2842D70D57B00AE20C3 = {
+		B2008FBC2D819CF80078E253 = {
 			isa = PBXGroup;
 			children = (
-				B2B1B28F2D70D57B00AE20C3 /* tdMouse */,
-				B2B1B28E2D70D57B00AE20C3 /* Products */,
+				B2008FC72D819CF80078E253 /* td_mouse_mac */,
+				B2008FC62D819CF80078E253 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		B2B1B28E2D70D57B00AE20C3 /* Products */ = {
+		B2008FC62D819CF80078E253 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B2B1B28D2D70D57B00AE20C3 /* tdMouse.app */,
+				B2008FC52D819CF80078E253 /* td_mouse_mac.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -57,72 +48,64 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B2B1B28C2D70D57B00AE20C3 /* tdMouse */ = {
+		B2008FC42D819CF80078E253 /* td_mouse_mac */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B2B1B29C2D70D57C00AE20C3 /* Build configuration list for PBXNativeTarget "tdMouse" */;
+			buildConfigurationList = B2008FD42D819CF90078E253 /* Build configuration list for PBXNativeTarget "td_mouse_mac" */;
 			buildPhases = (
-				B2B1B2892D70D57B00AE20C3 /* Sources */,
-				B2B1B28A2D70D57B00AE20C3 /* Frameworks */,
-				B2B1B28B2D70D57B00AE20C3 /* Resources */,
+				B2008FC12D819CF80078E253 /* Sources */,
+				B2008FC22D819CF80078E253 /* Frameworks */,
+				B2008FC32D819CF80078E253 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				B2B1B28F2D70D57B00AE20C3 /* tdMouse */,
+				B2008FC72D819CF80078E253 /* td_mouse_mac */,
 			);
-			name = tdMouse;
+			name = td_mouse_mac;
 			packageProductDependencies = (
-				B2B1B2A02D70D5FE00AE20C3 /* FlyingFox */,
-				B2B1B2A22D70D5FE00AE20C3 /* FlyingSocks */,
-				B2B1B2A52D70D60F00AE20C3 /* SMBClient */,
 			);
-			productName = tdMouse;
-			productReference = B2B1B28D2D70D57B00AE20C3 /* tdMouse.app */;
+			productName = td_mouse_mac;
+			productReference = B2008FC52D819CF80078E253 /* td_mouse_mac.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		B2B1B2852D70D57B00AE20C3 /* Project object */ = {
+		B2008FBD2D819CF80078E253 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
-					B2B1B28C2D70D57B00AE20C3 = {
+					B2008FC42D819CF80078E253 = {
 						CreatedOnToolsVersion = 16.2;
-						LastSwiftMigration = 1620;
 					};
 				};
 			};
-			buildConfigurationList = B2B1B2882D70D57B00AE20C3 /* Build configuration list for PBXProject "tdMouse" */;
+			buildConfigurationList = B2008FC02D819CF80078E253 /* Build configuration list for PBXProject "td_mouse_mac" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = B2B1B2842D70D57B00AE20C3;
+			mainGroup = B2008FBC2D819CF80078E253;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-				B2B1B29F2D70D5FE00AE20C3 /* XCRemoteSwiftPackageReference "FlyingFox" */,
-				B2B1B2A42D70D60F00AE20C3 /* XCRemoteSwiftPackageReference "SMBClient" */,
-			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = B2B1B28E2D70D57B00AE20C3 /* Products */;
+			productRefGroup = B2008FC62D819CF80078E253 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B2B1B28C2D70D57B00AE20C3 /* tdMouse */,
+				B2008FC42D819CF80078E253 /* td_mouse_mac */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		B2B1B28B2D70D57B00AE20C3 /* Resources */ = {
+		B2008FC32D819CF80078E253 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -132,7 +115,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		B2B1B2892D70D57B00AE20C3 /* Sources */ = {
+		B2008FC12D819CF80078E253 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -142,7 +125,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		B2B1B29A2D70D57C00AE20C3 /* Debug */ = {
+		B2008FD22D819CF90078E253 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -205,7 +188,7 @@
 			};
 			name = Debug;
 		};
-		B2B1B29B2D70D57C00AE20C3 /* Release */ = {
+		B2008FD32D819CF90078E253 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -260,61 +243,54 @@
 			};
 			name = Release;
 		};
-		B2B1B29D2D70D57C00AE20C3 /* Debug */ = {
+		B2008FD52D819CF90078E253 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = tdMouse/tdMouse.entitlements;
+				CODE_SIGN_ENTITLEMENTS = td_mouse_mac/td_mouse_mac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"td_mouse_mac/Preview Content\"";
 				DEVELOPMENT_TEAM = 5934F7X3NB;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "TD Mouse";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = thinh.macOS.tdMouse;
+				PRODUCT_BUNDLE_IDENTIFIER = "thinh.macOS.td-mouse-mac";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		B2B1B29E2D70D57C00AE20C3 /* Release */ = {
+		B2008FD62D819CF90078E253 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = tdMouse/tdMouse.entitlements;
+				CODE_SIGN_ENTITLEMENTS = td_mouse_mac/td_mouse_mac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"td_mouse_mac/Preview Content\"";
 				DEVELOPMENT_TEAM = 5934F7X3NB;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "TD Mouse";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = thinh.macOS.tdMouse;
+				PRODUCT_BUNDLE_IDENTIFIER = "thinh.macOS.td-mouse-mac";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -324,62 +300,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B2B1B2882D70D57B00AE20C3 /* Build configuration list for PBXProject "tdMouse" */ = {
+		B2008FC02D819CF80078E253 /* Build configuration list for PBXProject "td_mouse_mac" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B2B1B29A2D70D57C00AE20C3 /* Debug */,
-				B2B1B29B2D70D57C00AE20C3 /* Release */,
+				B2008FD22D819CF90078E253 /* Debug */,
+				B2008FD32D819CF90078E253 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B2B1B29C2D70D57C00AE20C3 /* Build configuration list for PBXNativeTarget "tdMouse" */ = {
+		B2008FD42D819CF90078E253 /* Build configuration list for PBXNativeTarget "td_mouse_mac" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B2B1B29D2D70D57C00AE20C3 /* Debug */,
-				B2B1B29E2D70D57C00AE20C3 /* Release */,
+				B2008FD52D819CF90078E253 /* Debug */,
+				B2008FD62D819CF90078E253 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		B2B1B29F2D70D5FE00AE20C3 /* XCRemoteSwiftPackageReference "FlyingFox" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/swhitty/FlyingFox.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.21.0;
-			};
-		};
-		B2B1B2A42D70D60F00AE20C3 /* XCRemoteSwiftPackageReference "SMBClient" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kishikawakatsumi/SMBClient.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.1;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		B2B1B2A02D70D5FE00AE20C3 /* FlyingFox */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B2B1B29F2D70D5FE00AE20C3 /* XCRemoteSwiftPackageReference "FlyingFox" */;
-			productName = FlyingFox;
-		};
-		B2B1B2A22D70D5FE00AE20C3 /* FlyingSocks */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B2B1B29F2D70D5FE00AE20C3 /* XCRemoteSwiftPackageReference "FlyingFox" */;
-			productName = FlyingSocks;
-		};
-		B2B1B2A52D70D60F00AE20C3 /* SMBClient */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B2B1B2A42D70D60F00AE20C3 /* XCRemoteSwiftPackageReference "SMBClient" */;
-			productName = SMBClient;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = B2B1B2852D70D57B00AE20C3 /* Project object */;
+	rootObject = B2008FBD2D819CF80078E253 /* Project object */;
 }
