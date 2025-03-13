@@ -16,6 +16,12 @@
     "Connect to TD Mouse" : {
 
     },
+    "Create" : {
+
+    },
+    "Create New Folder" : {
+
+    },
     "Delete" : {
 
     },
@@ -26,6 +32,12 @@
 
     },
     "Downloading %@" : {
+
+    },
+    "Error" : {
+
+    },
+    "Folder Name" : {
 
     },
     "Host" : {
@@ -41,6 +53,9 @@
 
     },
     "Not connected" : {
+
+    },
+    "OK" : {
 
     },
     "Open" : {
