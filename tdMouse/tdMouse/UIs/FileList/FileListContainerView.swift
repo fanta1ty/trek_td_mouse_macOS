@@ -24,12 +24,19 @@ struct FileListContainerView: View {
             )
             
             if viewModel.transferState != .none {
-                
+                TransferProgressView(
+                    transferState: viewModel.transferState,
+                    progress: viewModel.transferProgress
+                )
             }
         }
         .sheet(isPresented: $isFileActionSheetPresented) {
             if let file = selectedFile {
-                
+                FileActionSheet(
+                    viewModel: viewModel,
+                    isPresented: $isFileActionSheetPresented,
+                    file: file
+                )
             }
         }
     }
