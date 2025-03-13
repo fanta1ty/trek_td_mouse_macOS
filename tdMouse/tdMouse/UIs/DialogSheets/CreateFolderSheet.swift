@@ -34,7 +34,7 @@ struct CreateFolderSheet: View {
                 Button("Create") {
                     Task {
                         try await viewModel.createDirectory(directoryName: folderName)
-                        isPresented = true
+                        isPresented = false
                         folderName = ""
                     }
                 }

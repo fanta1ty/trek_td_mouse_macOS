@@ -337,6 +337,7 @@ class FileTransferViewModel: ObservableObject {
         
         do {
             try await client.createDirectory(path: directoryPath)
+            try await listFiles(currentDirectory)
         } catch {
             await MainActor.run { [weak self] in
                 guard let self else { return }
