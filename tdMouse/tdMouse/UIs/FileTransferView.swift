@@ -88,6 +88,16 @@ struct FileTransferView: View {
         .sheet(isPresented: $isConnectSheetPresented) {
             ConnectionSheet(viewModel: viewModel, isPresented: $isConnectSheetPresented)
         }
+        .onReceive(connectObserver) { _ in
+            isConnectSheetPresented = true
+        }
+        .onReceive(refreshObserver) { _ in
+            if viewModel.connectionState == .connected && !viewModel.shareName.isEmpty {
+                Task {
+                    try await viewModel.listFiles(viewModel.currentDirectory)
+                }
+            }
+        }
     }
 }
 

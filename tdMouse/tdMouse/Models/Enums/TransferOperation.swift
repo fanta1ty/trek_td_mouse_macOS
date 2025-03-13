@@ -5,7 +5,7 @@
 //  Created by Thinh Nguyen on 13/3/25.
 //
 
-enum TransferOperation {
+enum TransferOperation: Equatable {
     case none
     case downloading(String)
     case uploading(String)

@@ -22,10 +22,14 @@ struct FileListContainerView: View {
                 selectedFile: $selectedFile,
                 showFileActions: $isFileActionSheetPresented
             )
+            
+            if viewModel.transferState != .none {
+                
+            }
         }
         .sheet(isPresented: $isFileActionSheetPresented) {
             if let file = selectedFile {
-            
+                
             }
         }
     }

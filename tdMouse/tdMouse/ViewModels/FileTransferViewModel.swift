@@ -224,11 +224,109 @@ class FileTransferViewModel: ObservableObject {
         
         try await listFiles(newPath)
     }
+    
+    /// Navigate to a subdirectory
+    func navigateToDirectory(_ directoryName: String) async throws {
+        let newPath: String
+        
+        if currentDirectory.isEmpty {
+            newPath = directoryName
+        } else {
+            newPath = "\(currentDirectory)/\(directoryName)"
+        }
+        
+        try await listFiles(newPath)
+    }
+    
+    /// Download a file from the server
+    func downloadFile(fileName: String) async throws -> Data {
+        guard let client, connectionState == .connected else {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Not connected to server"
+            }
+            throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
+        }
+        
+        let filePath: String
+        if currentDirectory.isEmpty {
+            filePath = fileName
+        } else {
+            filePath = "\(currentDirectory)/\(fileName)"
+        }
+        
+        await MainActor.run { [weak self] in
+            guard let self else { return }
+            self.transferState = .downloading(fileName)
+            self.transferProgress = 0.0
+        }
+        
+        do {
+            let data = try await client.download(path: filePath) { [weak self] progress in
+                guard let self else { return }
+                
+                DispatchQueue.main.async {
+                    self.transferProgress = progress
+                }
+            }
+            
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.transferState = .none
+                self.transferProgress = 1.0
+            }
+            
+            return data
+        } catch {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Download failed: \(error.localizedDescription)"
+                self.transferState = .none
+            }
+            throw error
+        }
+    }
+    
+    /// Delete a file or directory on the server
+    func deleteItem(name: String, isDirectory: Bool) async throws {
+        guard let client, connectionState == .connected else {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Not connected to server"
+            }
+            throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
+        }
+        
+        let itemPath: String
+        if currentDirectory.isEmpty {
+            itemPath = name
+        } else {
+            itemPath = "\(currentDirectory)/\(name)"
+        }
+        
+        do {
+            try await client.deleteFile(path: itemPath)
+            try await listFiles(currentDirectory)
+        } catch {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Failed to delete item: \(error.localizedDescription)"
+            }
+            throw error
+        }
+    }
 }
 
 // MARK: - Helper Methods
 extension FileTransferViewModel {
     func isDirectory(_ file: File) -> Bool {
         file.isDirectory
+    }
+    
+    func formatFileSize(_ size: UInt64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useAll]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: Int64(size))
     }
 }
