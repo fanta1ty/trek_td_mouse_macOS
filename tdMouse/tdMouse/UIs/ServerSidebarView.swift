@@ -22,6 +22,30 @@ struct ServerSidebarView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            
+            if viewModel.connectionState == .connected {
+                Section("Shares") {
+                    ForEach(viewModel.availableShares, id: \.self) { share in
+                        Button(action: {
+                            Task {
+                                try await viewModel.connectToShare(share)
+                            }
+                        }, label: {
+                            HStack {
+                                Image(systemName: "folder")
+                                Text(share)
+                                
+                                if viewModel.shareName == share {
+                                    Spacer()
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(Color.accentColor)
+                                }
+                            }
+                        })
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
         }
         .listStyle(SidebarListStyle())
         .frame(minWidth: 180)

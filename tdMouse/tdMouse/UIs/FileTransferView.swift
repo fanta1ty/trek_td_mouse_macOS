@@ -56,6 +56,37 @@ struct FileTransferView: View {
                     }
                 })
             }
+            
+            if viewModel.connectionState == .connected && !viewModel.shareName.isEmpty {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        isCreateFolderSheetPresented.toggle()
+                    }) {
+                        Label("New Folder", systemImage: "folder.badge.plus")
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        isImportFilePickerPresented.toggle()
+                    }) {
+                        Label("Upload", systemImage: "arrow.up.doc")
+                    }
+                }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        Task {
+                            try await viewModel.listFiles(viewModel.currentDirectory)
+                        }
+                    }) {
+                        Label("Refresh", systemImage: "arrow.clockwise")
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $isConnectSheetPresented) {
+            ConnectionSheet(viewModel: viewModel, isPresented: $isConnectSheetPresented)
         }
     }
 }

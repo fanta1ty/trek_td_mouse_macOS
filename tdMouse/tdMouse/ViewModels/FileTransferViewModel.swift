@@ -150,4 +150,66 @@ class FileTransferViewModel: ObservableObject {
             throw error
         }
     }
+    
+    /// Connect to a specific share
+    func connectToShare(_ shareName: String) async throws {
+        guard let client, connectionState == .connected else {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Not connected to server"
+            }
+            throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
+        }
+        
+        do {
+            try await client.connectShare(shareName)
+            
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.shareName = shareName
+                self.currentDirectory = ""
+            }
+            
+        } catch {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Failed to connect to share: \(error.localizedDescription)"
+            }
+            throw error
+        }
+    }
+    
+    /// List files in a specific directory
+    func listFiles(_ path: String) async throws {
+        guard let client, connectionState == .connected else {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Not connected to server"
+            }
+            throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
+        }
+        
+        await MainActor.run { [weak self] in
+            guard let self else { return }
+            self.transferState = .listing(path)
+        }
+        
+        do {
+            let files = try await client.listDirectory(path: path)
+            
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.files = files
+                self.currentDirectory = path
+                self.transferState = .none
+            }
+        } catch {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Failed to list files: \(error.localizedDescription)"
+                self.transferState = .none
+            }
+            throw error
+        }
+    }
 }

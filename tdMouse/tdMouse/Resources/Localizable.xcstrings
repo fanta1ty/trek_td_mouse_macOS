@@ -1,19 +1,40 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Cancel" : {
+
+    },
     "Connect" : {
 
     },
     "Connect to Server" : {
 
     },
+    "Connect to TD Mouse" : {
+
+    },
     "Disconnect" : {
+
+    },
+    "Host" : {
 
     },
     "New Folder" : {
 
     },
     "Not connected" : {
+
+    },
+    "Password" : {
+
+    },
+    "Port" : {
+
+    },
+    "Port:" : {
+
+    },
+    "Reconnect" : {
 
     },
     "Refresh" : {
@@ -25,10 +46,19 @@
     "Server" : {
 
     },
+    "Shares" : {
+
+    },
     "TD Mouse" : {
 
     },
+    "Upload" : {
+
+    },
     "Upload File" : {
+
+    },
+    "Username" : {
 
     }
   },
