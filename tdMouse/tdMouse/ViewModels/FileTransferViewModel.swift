@@ -163,9 +163,11 @@ class FileTransferViewModel: ObservableObject {
         
         do {
             try await client.connectShare(shareName)
+            let files = try await client.listDirectory(path: currentDirectory)
             
             await MainActor.run { [weak self] in
                 guard let self else { return }
+                self.files = files
                 self.shareName = shareName
                 self.currentDirectory = ""
             }
@@ -311,6 +313,96 @@ class FileTransferViewModel: ObservableObject {
             await MainActor.run { [weak self] in
                 guard let self else { return }
                 self.errorMessage = "Failed to delete item: \(error.localizedDescription)"
+            }
+            throw error
+        }
+    }
+    
+    /// Create a new directory on the server
+    func createDirectory(directoryName: String) async throws {
+        guard let client, connectionState == .connected else {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Not connected to server"
+            }
+            throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
+        }
+        
+        let directoryPath: String
+        if currentDirectory.isEmpty {
+            directoryPath = directoryName
+        } else {
+            directoryPath = "\(currentDirectory)/\(directoryName)"
+        }
+        
+        do {
+            try await client.createDirectory(path: directoryPath)
+        } catch {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Failed to create directory: \(error.localizedDescription)"
+            }
+            throw error
+        }
+    }
+    
+    /// Upload a local file to the server
+    func uploadLocalFile(url: URL) async throws {
+        do {
+            let data = try Data(contentsOf: url)
+            try await uploadFile(data: data, fileName: url.lastPathComponent)
+        } catch {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Failed to read local file: \(error.localizedDescription)"
+            }
+            throw error
+        }
+    }
+    
+    /// Upload a file to the server
+    func uploadFile(data: Data, fileName: String) async throws {
+        guard let client, connectionState == .connected else {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Not connected to server"
+            }
+            throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
+        }
+        
+        let filePath: String
+        if currentDirectory.isEmpty {
+            filePath = fileName
+        } else {
+            filePath = "\(currentDirectory)/\(fileName)"
+        }
+        
+        await MainActor.run { [weak self] in
+            guard let self else { return }
+            self.transferState = .uploading(fileName)
+            self.transferProgress = 0.0
+        }
+        
+        do {
+            try await client.upload(content: data, path: filePath) { progress in
+                DispatchQueue.main.async {
+                    self.transferProgress = progress
+                }
+            }
+            
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.transferProgress = 1.0
+                self.transferState = .none
+            }
+            
+            try await listFiles(currentDirectory)
+            
+        } catch {
+            await MainActor.run { [weak self] in
+                guard let self else { return }
+                self.errorMessage = "Upload failed: \(error.localizedDescription)"
+                self.transferState = .none
             }
             throw error
         }

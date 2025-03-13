@@ -28,10 +28,7 @@ struct SMBFileTransferApp: App {
             // Add standard macOS menu commands
             CommandGroup(replacing: .newItem) {
                 Button("Connect to Server") {
-                    NotificationCenter.default.post(
-                        name: NSNotification.Name("OpenConnectDialog"),
-                        object: nil
-                    )
+                    FileNotificationCenter.shared.postOpenConnectDialog()
                 }
                 .keyboardShortcut("n", modifiers: .command)
             }
@@ -40,18 +37,12 @@ struct SMBFileTransferApp: App {
             CommandGroup(after: .newItem) {
                 Divider()
                 Button("Upload File") {
-                    NotificationCenter.default.post(
-                        name: NSNotification.Name("OpenUploadDialog"),
-                        object: nil
-                    )
+                    FileNotificationCenter.shared.postOpenUploadDialog()
                 }
                 .keyboardShortcut("u", modifiers: .command)
                 
                 Button("New Folder") {
-                    NotificationCenter.default.post(
-                        name: NSNotification.Name("OpenNewFolderDialog"),
-                        object: nil
-                    )
+                    FileNotificationCenter.shared.postOpenNewFolderDialog()
                 }
                 .keyboardShortcut("n", modifiers: [.command, .shift])
             }
@@ -59,10 +50,7 @@ struct SMBFileTransferApp: App {
             // Add refresh command
             CommandGroup(after: .toolbar) {
                 Button("Refresh") {
-                    NotificationCenter.default.post(
-                        name: NSNotification.Name("RefreshFileList"),
-                        object: nil
-                    )
+                    FileNotificationCenter.shared.postRefreshFileList()
                 }
                 .keyboardShortcut("r", modifiers: .command)
             }

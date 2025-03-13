@@ -88,9 +88,57 @@ struct FileTransferView: View {
         .sheet(isPresented: $isConnectSheetPresented) {
             ConnectionSheet(viewModel: viewModel, isPresented: $isConnectSheetPresented)
         }
+        .sheet(isPresented: $isCreateFolderSheetPresented, content: {
+            CreateFolderSheet(
+                viewModel: viewModel,
+                isPresented: $isCreateFolderSheetPresented,
+                folderName: $newFolderName
+            )
+        })
+        .fileImporter(
+            isPresented: $isImportFilePickerPresented,
+            allowedContentTypes: [.item],
+            allowsMultipleSelection: false,
+            onCompletion: { result in
+                switch result {
+                case .success(let urls):
+                    if let url = urls.first {
+                        Task {
+                            do {
+                                try await viewModel.uploadLocalFile(url: url)
+                            } catch {
+                                print("Upload error: \(error)")
+                            }
+                        }
+                    }
+                    
+                case .failure(let error):
+                    print("File picker error: \(error)")
+                }
+            })
+        .alert("Error", isPresented: .init(
+            get: { !viewModel.errorMessage.isEmpty },
+            set: { if !$0 {
+                viewModel.errorMessage = ""
+            }
+            }), actions: {
+                Button("OK", role: .cancel) {}
+            }, message: {
+                Text(viewModel.errorMessage)
+            })
         .onReceive(connectObserver) { _ in
             isConnectSheetPresented = true
         }
+        .onReceive(uploadObserver, perform: { _ in
+            if viewModel.connectionState == .connected && !viewModel.shareName.isEmpty {
+                isImportFilePickerPresented = true
+            }
+        })
+        .onReceive(newFolderObserver, perform: { _ in
+            if viewModel.connectionState == .connected && !viewModel.shareName.isEmpty {
+                isCreateFolderSheetPresented = true
+            }
+        })
         .onReceive(refreshObserver) { _ in
             if viewModel.connectionState == .connected && !viewModel.shareName.isEmpty {
                 Task {
