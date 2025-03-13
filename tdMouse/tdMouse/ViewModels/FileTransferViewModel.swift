@@ -212,4 +212,23 @@ class FileTransferViewModel: ObservableObject {
             throw error
         }
     }
+    
+    /// Navigate up one directory
+    func navigateUp() async throws {
+        if currentDirectory.isEmpty {
+            return
+        }
+        
+        let components = currentDirectory.components(separatedBy: "/")
+        let newPath = components.dropLast().joined(separator: "/")
+        
+        try await listFiles(newPath)
+    }
+}
+
+// MARK: - Helper Methods
+extension FileTransferViewModel {
+    func isDirectory(_ file: File) -> Bool {
+        file.isDirectory
+    }
 }

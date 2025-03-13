@@ -36,7 +36,7 @@ struct FileTransferView: View {
             
             // Main content with file listing
             if viewModel.connectionState == .connected {
-            
+                FileListContainerView(viewModel: viewModel)
             } else {
                 DisconnectedPlaceholderView {
                     isConnectSheetPresented.toggle()
