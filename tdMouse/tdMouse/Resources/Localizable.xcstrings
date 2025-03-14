@@ -1,10 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ Complete" : {
+
+    },
     "%lld%%" : {
 
     },
     "Cancel" : {
+
+    },
+    "Close" : {
 
     },
     "Connect" : {
@@ -86,6 +92,9 @@
 
     },
     "TD Mouse" : {
+
+    },
+    "Transfer Speed" : {
 
     },
     "Upload" : {
