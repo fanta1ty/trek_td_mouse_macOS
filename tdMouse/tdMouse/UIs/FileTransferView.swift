@@ -14,24 +14,18 @@ struct FileTransferView: View {
     @State private var isConnectSheetPresented = false
     @State private var isCreateFolderSheetPresented = false
     @State private var isImportFilePickerPresented = false
+    @State private var isTransferSummaryPresented = false
     @State private var newFolderName = ""
     
     // Notification observers for menu commands
-    private let connectObserver = NotificationCenter.default.publisher(
-        for: .init("OpenConnectDialog"), object: nil
-    )
-    private let uploadObserver = NotificationCenter.default.publisher(
-        for: .init("OpenUploadDialog"), object: nil
-    )
-    private let newFolderObserver = NotificationCenter.default.publisher(
-        for: .init("OpenNewFolderDialog"), object: nil
-    )
-    private let refreshObserver = NotificationCenter.default.publisher(
-        for: .init("RefreshFileList"), object: nil
-    )
+    private let connectObserver = FileNotificationCenter.shared.openConnectDialogPublisher()
+    private let uploadObserver = FileNotificationCenter.shared.openUploadDialogPublisher()
+    private let newFolderObserver = FileNotificationCenter.shared.openNewFolderDialogPublisher()
+    private let refreshObserver = FileNotificationCenter.shared.refreshFileListPublisher()
     
     var body: some View {
         NavigationView {
+            // Sidebar with shares
             ServerSidebarView(viewModel: viewModel)
             
             // Main content with file listing
@@ -126,6 +120,14 @@ struct FileTransferView: View {
             }, message: {
                 Text(viewModel.errorMessage)
             })
+        .sheet(isPresented: $viewModel.showTransferSummary, content: {
+            if let stats = viewModel.lastTransferStats {
+                TransferSummaryView(
+                    isPresented: $viewModel.showTransferSummary,
+                    stats: stats
+                )
+            }
+        })
         .onReceive(connectObserver) { _ in
             isConnectSheetPresented = true
         }
