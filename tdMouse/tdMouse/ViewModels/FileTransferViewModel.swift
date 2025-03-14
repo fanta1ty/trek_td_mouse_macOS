@@ -11,6 +11,7 @@ import Foundation
 
 class FileTransferViewModel: ObservableObject {
     // MARK: - Published Properties
+    // Published properties for transfer statistics
     @Published var credentials: SMBServerCredentials
     @Published var isCredentialsValid: Bool = false
     @Published var shareName: String = ""
@@ -21,10 +22,21 @@ class FileTransferViewModel: ObservableObject {
     @Published var files: [File] = []
     @Published var transferProgress: Double = 0.0
     @Published var errorMessage: String = ""
+    // Published properties for transfer stats
+    @Published var lastTransferStats: TransferStats?
+    @Published var showTransferSummary: Bool = false
     
     // MARK: - Private Properties
     private var client: SMBClient?
     private var cancellables = Set<AnyCancellable>()
+    // Private properteis for tracking transfer progress
+    private var transferStartTime: Date?
+    private var speedSamples: [Double] = []
+    private var speedSamplingTimer: Timer?
+    private var lastTransferredBytes: UInt64 = 0
+    private var currentTransferredBytes: UInt64 = 0
+    private var currentFileName: String = ""
+    private var currentTransferType: TransferStats.TransferType = .download
     
     init(credentials: SMBServerCredentials? = nil) {
         self.credentials = credentials ?? SMBServerCredentials(
@@ -430,5 +442,17 @@ extension FileTransferViewModel {
         formatter.allowedUnits = [.useAll]
         formatter.countStyle = .file
         return formatter.string(fromByteCount: Int64(size))
+    }
+}
+
+// MARK: - Transfer Statistics Methods
+extension FileTransferViewModel {
+    /// Start tracking a new transfer
+    private func startTransferTracking(
+        fileName: String,
+        fileSize: UInt64,
+        type: TransferStats.TransferType
+    ) {
+        
     }
 }
