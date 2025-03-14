@@ -349,6 +349,15 @@ class FileTransferViewModel: ObservableObject {
     
     /// Upload a local file to the server
     func uploadLocalFile(url: URL) async throws {
+        guard url.startAccessingSecurityScopedResource() else {
+            throw NSError(domain: "SMBClientError", code: 4, userInfo: [NSLocalizedDescriptionKey: "Failed to access security scoped resource"])
+        }
+        
+        // Ensure we stop accessing when we're done
+        defer {
+            url.stopAccessingSecurityScopedResource()
+        }
+        
         do {
             let data = try Data(contentsOf: url)
             try await uploadFile(data: data, fileName: url.lastPathComponent)
