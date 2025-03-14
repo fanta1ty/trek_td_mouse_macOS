@@ -40,7 +40,8 @@ class FileTransferViewModel: ObservableObject {
     
     init(credentials: SMBServerCredentials? = nil) {
         self.credentials = credentials ?? SMBServerCredentials(
-            host: "192.168.50.24",
+//            host: "192.168.50.24",
+            host: "10.211.55.4",
             username: "sambauser",
             password: "123456",
             domain: "share"
@@ -269,10 +270,19 @@ class FileTransferViewModel: ObservableObject {
             filePath = "\(currentDirectory)/\(fileName)"
         }
         
+        // Get file info to know the size
+        let fileInfo = try await getFileInfo(fileName: fileName)
+        let fileSize = fileInfo?.size ?? 0
+        
         await MainActor.run { [weak self] in
             guard let self else { return }
             self.transferState = .downloading(fileName)
             self.transferProgress = 0.0
+            self.startTransferTracking(
+                fileName: fileName,
+                fileSize: fileSize,
+                type: .download
+            )
         }
         
         do {
@@ -281,6 +291,8 @@ class FileTransferViewModel: ObservableObject {
                 
                 DispatchQueue.main.async {
                     self.transferProgress = progress
+                    let bytesTransferred = UInt64(progress * Double(fileSize))
+                    self.updateTransferProgress(bytesTransferred: bytesTransferred)
                 }
             }
             
@@ -289,6 +301,7 @@ class FileTransferViewModel: ObservableObject {
                 self.transferState = .none
                 self.transferProgress = 1.0
             }
+            finishTransferTracking(fileSize: UInt64(data.count))
             
             return data
         } catch {
@@ -296,6 +309,7 @@ class FileTransferViewModel: ObservableObject {
                 guard let self else { return }
                 self.errorMessage = "Download failed: \(error.localizedDescription)"
                 self.transferState = .none
+                self.stopSpeedSamplingTimer()
             }
             throw error
         }
@@ -399,16 +413,25 @@ class FileTransferViewModel: ObservableObject {
             filePath = "\(currentDirectory)/\(fileName)"
         }
         
+        let fileSize = UInt64(data.count)
+        
         await MainActor.run { [weak self] in
             guard let self else { return }
             self.transferState = .uploading(fileName)
             self.transferProgress = 0.0
+            self.startTransferTracking(
+                fileName: fileName,
+                fileSize: fileSize,
+                type: .upload
+            )
         }
         
         do {
             try await client.upload(content: data, path: filePath) { progress in
                 DispatchQueue.main.async {
                     self.transferProgress = progress
+                    let bytesTransferred = UInt64(progress * Double(fileSize))
+                    self.updateTransferProgress(bytesTransferred: bytesTransferred)
                 }
             }
             
@@ -418,6 +441,8 @@ class FileTransferViewModel: ObservableObject {
                 self.transferState = .none
             }
             
+            finishTransferTracking(fileSize: fileSize)
+            
             try await listFiles(currentDirectory)
             
         } catch {
@@ -425,9 +450,25 @@ class FileTransferViewModel: ObservableObject {
                 guard let self else { return }
                 self.errorMessage = "Upload failed: \(error.localizedDescription)"
                 self.transferState = .none
+                self.stopSpeedSamplingTimer()
             }
             throw error
         }
+    }
+    
+    /// Get detailed information about a file
+    private func getFileInfo(fileName: String) async throws -> File? {
+        guard let client, connectionState == .connected else {
+            throw NSError(
+                domain: "SMBClientError",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Not connected to server"]
+            )
+        }
+        
+        let path = currentDirectory.isEmpty ? "" : currentDirectory
+        let files = try await client.listDirectory(path: path)
+        return files.first { $0.name == fileName }
     }
 }
 
@@ -453,6 +494,80 @@ extension FileTransferViewModel {
         fileSize: UInt64,
         type: TransferStats.TransferType
     ) {
+        transferStartTime = Date()
+        speedSamples = []
+        lastTransferredBytes = 0
+        currentTransferredBytes = 0
+        currentFileName = fileName
+        currentTransferType = type
         
+        // Start the sampling timer
+        stopSpeedSamplingTimer()
+        speedSamplingTimer = Timer.scheduledTimer(
+            withTimeInterval: 0.5,
+            repeats: true,
+            block: { [weak self] _ in
+                guard let self else { return }
+                self.updateSpeedSample()
+            })
+    }
+    
+    /// Update the speed sample based on current progress
+    private func updateSpeedSample() {
+        guard let startTime = transferStartTime else { return }
+        
+        let now = Date()
+        let elapsed = now.timeIntervalSince(startTime)
+        if elapsed > 0 {
+            // Calculate current speed in bytes per second
+            let bytesTransferred = currentTransferredBytes - lastTransferredBytes
+            let instantSpeed = Double(bytesTransferred) / 0.5
+            
+            if instantSpeed > 0 {
+                speedSamples.append(instantSpeed)
+            }
+            
+            lastTransferredBytes = currentTransferredBytes
+        }
+    }
+    
+    /// Stop the speed sampling timer
+    private func stopSpeedSamplingTimer() {
+        speedSamplingTimer?.invalidate()
+        speedSamplingTimer = nil
+    }
+    
+    /// Update the current transfer progress
+    func updateTransferProgress(
+        bytesTransferred: UInt64
+    ) {
+        currentTransferredBytes = bytesTransferred
+    }
+    
+    /// Finish tracking a transfer and generate stats
+    private func finishTransferTracking(fileSize: UInt64) {
+        stopSpeedSamplingTimer()
+        
+        guard let startTime = transferStartTime else { return }
+        let endTime = Date()
+        
+        let stats = TransferStats(
+            fileSize: fileSize,
+            fileName: currentFileName,
+            startTime: startTime,
+            endTime: endTime,
+            transferType: currentTransferType,
+            speedSamples: speedSamples
+        )
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.lastTransferStats = stats
+            self.showTransferSummary = true
+        }
+        
+        // Reset tracking data
+        transferStartTime = nil
+        speedSamples = []
     }
 }
