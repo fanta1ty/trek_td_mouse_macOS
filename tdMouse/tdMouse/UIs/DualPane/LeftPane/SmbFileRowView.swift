@@ -14,7 +14,34 @@ struct SmbFileRowView: View {
     
     var body: some View {
         HStack {
+            // Icon
+            if viewModel.isDirectory(file) {
+                Image(systemName: "folder")
+                    .foregroundStyle(Color.accentColor)
+            } else {
+                Image(systemName: Helpers.iconForFile(file.name))
+                    .foregroundStyle(.secondary)
+            }
             
+            // Filename and details
+            VStack(alignment: .leading, spacing: 2) {
+                Text(file.name)
+                    .fontWeight(viewModel.isDirectory(file) ? .medium : .regular)
+                
+                HStack(spacing: 8) {
+                    Text(Helpers.formatDate(file.lastWriteTime))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    if !viewModel.isDirectory(file) {
+                        Text(Helpers.formatFileSize(file.size))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
+            Spacer()
         }
         .padding(.vertical, 2)
     }

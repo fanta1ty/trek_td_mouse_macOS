@@ -22,6 +22,7 @@ class FileTransferViewModel: ObservableObject {
     @Published var files: [File] = []
     @Published var transferProgress: Double = 0.0
     @Published var errorMessage: String = ""
+    
     // Published properties for transfer stats
     @Published var lastTransferStats: TransferStats?
     @Published var showTransferSummary: Bool = false
@@ -29,6 +30,7 @@ class FileTransferViewModel: ObservableObject {
     // MARK: - Private Properties
     private var client: SMBClient?
     private var cancellables = Set<AnyCancellable>()
+    
     // Private properteis for tracking transfer progress
     private var transferStartTime: Date?
     private var speedSamples: [Double] = []
@@ -476,6 +478,10 @@ class FileTransferViewModel: ObservableObject {
 extension FileTransferViewModel {
     func isDirectory(_ file: File) -> Bool {
         file.isDirectory
+    }
+    
+    func getFileByName(_ fileName: String) -> File? {
+        return files.first { $0.name == fileName }
     }
 }
 

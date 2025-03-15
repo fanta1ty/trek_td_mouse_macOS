@@ -7,32 +7,74 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct ConnectionSheet: View {
     @ObservedObject var viewModel: FileTransferViewModel
     @Binding var isPresented: Bool
+    @State private var showPassword = false
+    @State private var connectionName = ""
+    @State private var shouldSave = false
     
     var body: some View {
         VStack {
-            Text("Connect to TD Mouse")
+            Text("Connect to SMB Server")
                 .font(.headline)
                 .padding()
             
             Form {
-                TextField("Host", text: $viewModel.credentials.host)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                HStack {
-                    Text("Port:")
-                    TextField("Port", value: $viewModel.credentials.port, formatter: NumberFormatter())
+                Section("Server Details") {
+                    TextField("Host", text: $viewModel.credentials.host)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .frame(width: 80)
+                    
+                    HStack {
+                        Text("Port:")
+                        TextField("Port", value: $viewModel.credentials.port, formatter: NumberFormatter())
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 80)
+                    }
+                    
+                    TextField("Domain (optional)", text: $viewModel.credentials.domain)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
                 
-                TextField("Username", text: $viewModel.credentials.username)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Section("Credentials") {
+                    TextField("Username", text: $viewModel.credentials.username)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    HStack {
+                        if showPassword {
+                            TextField("Password", text: $viewModel.credentials.password)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        } else {
+                            SecureField("Password", text: $viewModel.credentials.password)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        }
+                        
+                        Button(action: {
+                            showPassword.toggle()
+                        }) {
+                            Image(systemName: showPassword ? "eye.slash" : "eye")
+                                .foregroundColor(.secondary)
+                        }
+                        .buttonStyle(.borderless)
+                    }
+                }
                 
-                SecureField("Password", text: $viewModel.credentials.username)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Section("Save Connection") {
+                    TextField("Connection Name (optional)", text: $connectionName)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .disabled(!shouldSave)
+                    
+                    Toggle("Save connection for future use", isOn: $shouldSave)
+                        .toggleStyle(.switch)
+                    
+                    if shouldSave {
+                        Text("Note: Password will not be saved")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
             }
             .padding()
             
@@ -52,7 +94,7 @@ struct ConnectionSheet: View {
                         }
                     }
                     .buttonStyle(.bordered)
-                    .foregroundStyle(.red)
+                    .foregroundColor(.red)
                 }
                 
                 Button(viewModel.connectionState == .connected ? "Reconnect" : "Connect") {
@@ -60,6 +102,12 @@ struct ConnectionSheet: View {
                         if viewModel.connectionState == .connected {
                             try await viewModel.disconnect()
                         }
+                        
+                        // Save the connection if requested
+                        if shouldSave {
+                            saveConnection()
+                        }
+                        
                         try await viewModel.connect()
                         isPresented = false
                     }
@@ -70,7 +118,60 @@ struct ConnectionSheet: View {
             }
             .padding()
         }
-        .frame(width: 400)
+        .frame(width: 450)
+        .onAppear {
+            // Pre-fill the connection name with host if empty
+            if connectionName.isEmpty && !viewModel.credentials.host.isEmpty {
+                connectionName = viewModel.credentials.host
+            }
+        }
+    }
+    
+    private func saveConnection() {
+        // Get the AppStorage from UserDefaults
+        if let savedConnectionsData = UserDefaults.standard.data(forKey: "savedConnections") {
+            do {
+                let decoder = JSONDecoder()
+                var savedConnections = try decoder.decode([SharesSidebarView.SavedConnection].self, from: savedConnectionsData)
+                
+                // Create a new connection object
+                let newConnection = SharesSidebarView.SavedConnection(
+                    name: connectionName.isEmpty ? viewModel.credentials.host : connectionName,
+                    host: viewModel.credentials.host,
+                    port: UInt16(viewModel.credentials.port),
+                    username: viewModel.credentials.username,
+                    domain: viewModel.credentials.domain
+                )
+                
+                // Add it if it doesn't already exist
+                if !savedConnections.contains(where: { $0.host == newConnection.host && $0.username == newConnection.username }) {
+                    savedConnections.append(newConnection)
+                    
+                    // Save back to UserDefaults
+                    let encoder = JSONEncoder()
+                    if let encodedData = try? encoder.encode(savedConnections) {
+                        UserDefaults.standard.set(encodedData, forKey: "savedConnections")
+                    }
+                }
+            } catch {
+                print("Failed to save connection: \(error)")
+            }
+        } else {
+            // No existing connections, create a new array
+            let newConnection = SharesSidebarView.SavedConnection(
+                name: connectionName.isEmpty ? viewModel.credentials.host : connectionName,
+                host: viewModel.credentials.host,
+                port: UInt16(viewModel.credentials.port),
+                username: viewModel.credentials.username,
+                domain: viewModel.credentials.domain
+            )
+            
+            let connections = [newConnection]
+            let encoder = JSONEncoder()
+            if let encodedData = try? encoder.encode(connections) {
+                UserDefaults.standard.set(encodedData, forKey: "savedConnections")
+            }
+        }
     }
 }
 

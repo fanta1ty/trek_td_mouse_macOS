@@ -12,8 +12,8 @@ import Combine
 struct SMBFileTransferApp: App {
     var body: some Scene {
         WindowGroup {
-            FileTransferView()
-                .frame(minWidth: 800, minHeight: 600)
+            DualPaneFileTransferView()
+                .frame(minWidth: 900, minHeight: 600)
                 .onAppear {
                     // Set window title on macOS
                     if let window = NSApplication.shared.windows.first {

@@ -32,7 +32,7 @@ struct FileRowView: View {
                         .foregroundStyle(.secondary)
                     
                     if !viewModel.isDirectory(file) {
-                        Text(viewModel.formatFileSize(file.size))
+                        Text(Helpers.formatFileSize(file.size))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

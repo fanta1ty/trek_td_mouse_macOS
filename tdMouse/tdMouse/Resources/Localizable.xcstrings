@@ -4,7 +4,23 @@
     "%@ Complete" : {
 
     },
+    "%lld items on server • %lld local items" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld items on server • %2$lld local items"
+          }
+        }
+      }
+    },
     "%lld%%" : {
+
+    },
+    "Add new connection" : {
+
+    },
+    "Available Shares" : {
 
     },
     "Cancel" : {
@@ -19,7 +35,19 @@
     "Connect to Server" : {
 
     },
-    "Connect to TD Mouse" : {
+    "Connect to SMB Server" : {
+
+    },
+    "Connected to %@" : {
+
+    },
+    "Connecting..." : {
+
+    },
+    "Connection Name (optional)" : {
+
+    },
+    "Connections" : {
 
     },
     "Create" : {
@@ -28,16 +56,31 @@
     "Create New Folder" : {
 
     },
+    "Credentials" : {
+
+    },
     "Delete" : {
 
     },
     "Disconnect" : {
 
     },
+    "Disconnected" : {
+
+    },
+    "Domain (optional)" : {
+
+    },
     "Download" : {
 
     },
     "Downloading %@" : {
+
+    },
+    "Downloading to local" : {
+
+    },
+    "Edit" : {
 
     },
     "Error" : {
@@ -52,13 +95,25 @@
     "Listing %@" : {
 
     },
+    "Local Files" : {
+
+    },
     "More Options..." : {
 
     },
     "New Folder" : {
 
     },
+    "No saved connections" : {
+
+    },
     "Not connected" : {
+
+    },
+    "Not Connected" : {
+
+    },
+    "Note: Password will not be saved" : {
 
     },
     "OK" : {
@@ -82,13 +137,34 @@
     "Refresh" : {
 
     },
+    "Save Connection" : {
+
+    },
+    "Save connection for future use" : {
+
+    },
+    "Saved Connections" : {
+
+    },
     "Select a server to connect" : {
 
     },
     "Server" : {
 
     },
+    "Server Details" : {
+
+    },
     "Shares" : {
+
+    },
+    "SMB File Transfer" : {
+
+    },
+    "SMB Server" : {
+
+    },
+    "SMB: %@" : {
 
     },
     "TD Mouse" : {
@@ -103,7 +179,13 @@
     "Upload File" : {
 
     },
+    "Upload to SMB" : {
+
+    },
     "Uploading %@" : {
+
+    },
+    "Uploading to SMB" : {
 
     },
     "Username" : {
