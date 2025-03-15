@@ -7,10 +7,12 @@
 
 import SwiftUI
 import SMBClient
+import UniformTypeIdentifiers
 
 struct SMBPaneView: View {
     @ObservedObject var viewModel: FileTransferViewModel
     let onFileTap: (File) -> Void
+    let onLocalFileDrop: (NSItemProvider) -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -75,5 +77,11 @@ struct SMBPaneView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+        .onDrop(of: [UTType.plainText.identifier], isTargeted: nil) { providers -> Bool in
+            for provider in providers {
+                onLocalFileDrop(provider)
+            }
+            return true
+        }
     }
 }

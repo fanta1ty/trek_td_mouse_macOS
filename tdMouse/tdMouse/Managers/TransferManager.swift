@@ -176,8 +176,19 @@ extension TransferManager {
             guard error == nil else { return }
             
             DispatchQueue.main.async {
+                var jsonString: String? = nil
+                
+                if let string = secureData as? String {
+                    jsonString = string
+                } else if let nsString = secureData as? NSString {
+                    jsonString = nsString as String
+                } else if let data = secureData as? Data,
+                          let decodedString = String(data: data, encoding: .utf8) {
+                    jsonString = decodedString
+                }
+                
                 // Try to decode as JSON first
-                if let jsonString = secureData as? String {
+                if let jsonString = jsonString {
                     if let jsonData = jsonString.data(using: .utf8),
                        let fileInfo = try? JSONSerialization.jsonObject(with: jsonData) as? [String: String],
                        let fileName = fileInfo["name"],
@@ -223,8 +234,20 @@ extension TransferManager {
             guard error == nil else { return }
             
             DispatchQueue.main.async {
-                // Try to decode as JSON first
-                if let jsonString = secureData as? String {
+                var jsonString: String? = nil
+                
+                if let string = secureData as? String {
+                    jsonString = string
+                } else if let nsString = secureData as? NSString {
+                    jsonString = nsString as String
+                } else if let data = secureData as? Data,
+                          let decodedString = String(data: data, encoding: .utf8) {
+                    jsonString = decodedString
+                }
+                
+                // Process the JSON string if we got one
+                
+                if let jsonString = jsonString {
                     if let jsonData = jsonString.data(using: .utf8),
                        let fileInfo = try? JSONSerialization.jsonObject(with: jsonData) as? [String: String],
                        let path = fileInfo["path"],
@@ -276,9 +299,7 @@ extension TransferManager {
         
         do {
             // Create the folder on SMB server if not at root
-            if !parentPath.isEmpty {
-                try await smbViewModel.createDirectory(directoryName: folderName)
-            }
+            try await smbViewModel.createDirectory(directoryName: folderName)
             
             // Get all items in the local folder
             let fileManager = FileManager.default
@@ -289,7 +310,7 @@ extension TransferManager {
             // Count total items for progress tracking
             let totalItems = contents.count
             
-            await MainActor.run {
+            DispatchQueue.main.async {
                 self.totalTransferItems += totalItems
             }
             
@@ -307,10 +328,7 @@ extension TransferManager {
                     // 1. Navigate to the target directory on SMB
                     let currentDir = smbViewModel.currentDirectory
                     
-                    if !parentPath.isEmpty {
-                        // Navigate to parent directory if not already there
-                        try await smbViewModel.navigateToDirectory(folderName)
-                    }
+                    try await smbViewModel.navigateToDirectory(folderName)
                     
                     // 2. Recursively upload the subdirectory contents
                     await uploadFolderRecursively(
@@ -322,21 +340,15 @@ extension TransferManager {
                     // 3. Navigate back to original directory
                     try await smbViewModel.listFiles(currentDir)
                 } else {
-                    // Upload file, first navigating to the right directory if needed
-                    if parentPath.isEmpty {
-                        // Upload directly to current directory
-                        try await smbViewModel.uploadLocalFile(url: itemURL)
-                    } else {
-                        // Navigate to correct directory first
-                        let currentDir = smbViewModel.currentDirectory
-                        try await smbViewModel.navigateToDirectory(folderName)
-                        
-                        // Upload file
-                        try await smbViewModel.uploadLocalFile(url: itemURL)
-                        
-                        // Navigate back
-                        try await smbViewModel.listFiles(currentDir)
-                    }
+                    // Navigate to correct directory first
+                    let currentDir = smbViewModel.currentDirectory
+                    try await smbViewModel.navigateToDirectory(folderName)
+                    
+                    // Upload file
+                    try await smbViewModel.uploadLocalFile(url: itemURL)
+                    
+                    // Navigate back
+                    try await smbViewModel.listFiles(currentDir)
                 }
                 
                 await MainActor.run {
@@ -354,23 +366,29 @@ extension TransferManager {
         destURL: URL,
         smbViewModel: FileTransferViewModel
     ) async {
+        // Track our path to avoid loops
+        let startingDir = smbViewModel.currentDirectory
+        let targetDir = startingDir.isEmpty ? folderName : "\(startingDir)/\(folderName)"
+        
         do {
             // Create the local folder
             try FileManager.default.createDirectory(at: destURL, withIntermediateDirectories: true)
-                
-            // Navigate to the folder on SMB
-            let currentDir = smbViewModel.currentDirectory
-            try await smbViewModel.navigateToDirectory(folderName)
+            
+            // Navigate to the target directory directly instead of navigating relatively
+            try await smbViewModel.listFiles(targetDir)
             
             // List files in the folder
             let files = smbViewModel.files
             
+            // Skip the "." and ".." entries if they exist
+            let validFiles = files.filter { $0.name != "." && $0.name != ".." }
+            
             await MainActor.run {
-                self.totalTransferItems += files.count
+                self.totalTransferItems += validFiles.count
             }
             
             // Download each file or subfolder
-            for file in files {
+            for file in validFiles {
                 // Update progress
                 await MainActor.run {
                     self.currentTransferItem = file.name
@@ -379,28 +397,58 @@ extension TransferManager {
                 if smbViewModel.isDirectory(file) {
                     // Recursively download subfolders
                     let subfolderURL = destURL.appendingPathComponent(file.name)
+                    let subfolderPath = targetDir.isEmpty ? file.name : "\(targetDir)/\(file.name)"
+                    
+                    // Use the full path instead of relative navigation
                     await downloadFolderRecursively(
-                        folderName: file.name,
+                        folderName: subfolderPath,
                         destURL: subfolderURL,
                         smbViewModel: smbViewModel
                     )
+                    
+                    // Navigate back to the current folder after each subfolder
+                    try await smbViewModel.listFiles(targetDir)
                 } else {
+                    // Use the full path to download the file
+                    let fullPath = targetDir.isEmpty ? file.name : "\(targetDir)/\(file.name)"
+                    
                     // Download individual file
                     let fileURL = destURL.appendingPathComponent(file.name)
+                    
+                    // Save current directory
+                    let tempDir = smbViewModel.currentDirectory
+                    
+                    // Navigate to the file's parent directory if needed
+                    if smbViewModel.currentDirectory != targetDir {
+                        try await smbViewModel.listFiles(targetDir)
+                    }
+                    
                     let data = try await smbViewModel.downloadFile(fileName: file.name)
                     try data.write(to: fileURL)
+                    
+                    // Ensure we're back in the right directory
+                    if smbViewModel.currentDirectory != tempDir {
+                        try await smbViewModel.listFiles(tempDir)
+                    }
                 }
                 
                 await MainActor.run {
                     self.processedTransferItems += 1
                 }
             }
-                        
             
-            // Navigate back to original directory
-            try await smbViewModel.listFiles(currentDir)
+            // Always navigate back to starting directory
+            try await smbViewModel.listFiles(startingDir)
+            
         } catch {
-            print("Error downloading folder: \(error)")
+            print("Error downloading folder '\(folderName)' to '\(destURL.path)': \(error)")
+            
+            // Even if we hit an error, try to get back to the starting directory
+            do {
+                try await smbViewModel.listFiles(startingDir)
+            } catch {
+                print("Failed to return to starting directory: \(error)")
+            }
         }
     }
 }

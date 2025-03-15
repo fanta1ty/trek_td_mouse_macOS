@@ -42,7 +42,8 @@ struct DualPaneFileTransferView: View {
                 // Middle pane - SMB server files
                 SMBPaneView(
                     viewModel: smbViewModel,
-                    onFileTap: handleSmbFileTap
+                    onFileTap: handleSmbFileTap,
+                    onLocalFileDrop: handleLocalFilesDropOnSMB
                 )
                 
                 // Divider
@@ -65,6 +66,17 @@ struct DualPaneFileTransferView: View {
                 transferManager: transferManager
             )
         }
+        .toolbar(content: {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    isSidebarVisible.toggle()
+                }) {
+                    Image(systemName: "sidebar.left")
+                }
+                .help("Toggle sidebar")
+                .keyboardShortcut("s", modifiers: [.command, .option])
+            }
+        })
         // Sheets
         .sheet(isPresented: $isConnectSheetPresented) {
             ConnectionSheet(viewModel: smbViewModel, isPresented: $isConnectSheetPresented)
@@ -104,6 +116,9 @@ struct DualPaneFileTransferView: View {
         .onAppear {
             setupNotificationObservers()
             localViewModel.initialize()
+        }
+        .onDisappear {
+            NotificationCenter.default.removeObserver(self)
         }
     }
     
@@ -210,6 +225,7 @@ struct DualPaneFileTransferView: View {
             object: nil,
             queue: .main
         ) { _ in
+            
             isConnectSheetPresented = true
         }
         

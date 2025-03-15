@@ -24,7 +24,7 @@ struct SMBFileRow: View {
 //                return provider
                 // Create a dictionary with the file information
                 let fileInfo = [
-                    "fileName": file.name,
+                    "name": file.name,
                     "isDirectory": file.isDirectory ? "true" : "false",
                     "type": "smbFile"
                 ]
