@@ -346,6 +346,33 @@ class FileTransferViewModel: ObservableObject {
         }
     }
     
+    /// Delete a folder and all its contents recursively
+    func deleteDirectoryRecursively(name: String) async throws {
+        // First, navigate into the directory
+        let currentDir = currentDirectory
+        try await navigateToDirectory(name)
+        
+        // List all files in the directory
+        let dirContents = files.filter { $0.name != "." && $0.name != ".." }
+        
+        // Delete each item
+        for item in dirContents {
+            if isDirectory(item) {
+                // Recursively delete subdirectories
+                try await deleteDirectoryRecursively(name: item.name)
+            } else {
+                // Delete individual files
+                try await deleteItem(name: item.name, isDirectory: false)
+            }
+        }
+        
+        // Navigate back to parent directory
+        try await listFiles(currentDir)
+        
+        // Now delete the empty directory
+        try await deleteItem(name: name, isDirectory: true)
+    }
+    
     /// Create a new directory on the server
     func createDirectory(directoryName: String) async throws {
         guard let client, connectionState == .connected else {

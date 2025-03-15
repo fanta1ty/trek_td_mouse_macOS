@@ -61,7 +61,11 @@ struct SMBFileRow: View {
         
         Button("Delete") {
             Task {
-                try await viewModel.deleteItem(name: file.name, isDirectory: viewModel.isDirectory(file))
+                if viewModel.isDirectory(file) {
+                    try await viewModel.deleteDirectoryRecursively(name: file.name)
+                } else {
+                    try await viewModel.deleteItem(name: file.name, isDirectory: viewModel.isDirectory(file))
+                }
             }
         }
     }
