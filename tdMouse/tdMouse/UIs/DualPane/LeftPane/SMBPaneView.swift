@@ -53,7 +53,7 @@ struct SMBPaneView: View {
                 
                 // File list
                 List {
-                    ForEach(viewModel.files, id: \.name) { file in
+                    ForEach(viewModel.files.filter { $0.name != "." && $0.name != ".." }, id: \.name) { file in
                         SMBFileRow(file: file, viewModel: viewModel, onFileTap: onFileTap)
                     }
                 }
