@@ -63,14 +63,25 @@ struct LocalPaneView: View {
     
     private func handleDrop(_ providers: [NSItemProvider]) -> Void {
         for provider in providers {
-            provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) { stringData, error in
+            provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) { secureData, error in
                 guard error == nil else { return }
                 
                 DispatchQueue.main.async {
-                    if let fileName = stringData as? String {
+                    if let string = secureData as? String {
                         NotificationCenter.default.post(
                             name: Notification.Name("ProcessSMBFileDrop"),
-                            object: fileName
+                            object: string
+                        )
+                    } else if let nsString = secureData as? NSString {
+                        NotificationCenter.default.post(
+                            name: Notification.Name("ProcessSMBFileDrop"),
+                            object: nsString as String
+                        )
+                    } else if let data = secureData as? Data,
+                              let string = String(data: data, encoding: .utf8) {
+                        NotificationCenter.default.post(
+                            name: Notification.Name("ProcessSMBFileDrop"),
+                            object: string
                         )
                     }
                 }
