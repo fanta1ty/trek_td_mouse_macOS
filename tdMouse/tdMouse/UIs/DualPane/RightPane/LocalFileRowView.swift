@@ -18,6 +18,7 @@ struct LocalFileRowView: View {
             // Icon
             Image(systemName: file.icon)
                 .foregroundStyle(file.isDirectory ? Color.accentColor : .secondary)
+                .frame(width: 24)
             
             // Filename and details
             VStack(alignment: .leading, spacing: 2) {
@@ -40,6 +41,21 @@ struct LocalFileRowView: View {
             }
             
             Spacer()
+            
+            // Quick actions
+            if !file.isDirectory {
+                Button(action: {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("UploadLocalFile"),
+                        object: file
+                    )
+                }) {
+                    Image(systemName: "arrow.up")
+                        .font(.caption)
+                }
+                .buttonStyle(.borderless)
+                .help("Upload to TD Mouse")
+            }
         }
         .padding(.vertical, 2)
     }
@@ -53,7 +69,8 @@ struct LocalFileRowView_Previews: PreviewProvider {
                 name: "Name",
                 url: .homeDirectory,
                 isDirectory: false,
-                size: 100)
+                size: 100
+            )
         )
     }
 }

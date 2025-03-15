@@ -132,10 +132,10 @@ struct ConnectionSheet: View {
         if let savedConnectionsData = UserDefaults.standard.data(forKey: "savedConnections") {
             do {
                 let decoder = JSONDecoder()
-                var savedConnections = try decoder.decode([SharesSidebarView.SavedConnection].self, from: savedConnectionsData)
+                var savedConnections = try decoder.decode([SavedConnection].self, from: savedConnectionsData)
                 
                 // Create a new connection object
-                let newConnection = SharesSidebarView.SavedConnection(
+                let newConnection = SavedConnection(
                     name: connectionName.isEmpty ? viewModel.credentials.host : connectionName,
                     host: viewModel.credentials.host,
                     port: UInt16(viewModel.credentials.port),
@@ -158,7 +158,7 @@ struct ConnectionSheet: View {
             }
         } else {
             // No existing connections, create a new array
-            let newConnection = SharesSidebarView.SavedConnection(
+            let newConnection = SavedConnection(
                 name: connectionName.isEmpty ? viewModel.credentials.host : connectionName,
                 host: viewModel.credentials.host,
                 port: UInt16(viewModel.credentials.port),

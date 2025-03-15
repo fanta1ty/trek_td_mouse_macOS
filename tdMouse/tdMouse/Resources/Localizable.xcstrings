@@ -14,6 +14,16 @@
         }
       }
     },
+    "%lld/%lld items" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld items"
+          }
+        }
+      }
+    },
     "%lld%%" : {
 
     },
@@ -42,6 +52,9 @@
 
     },
     "Connecting..." : {
+
+    },
+    "Connection Name" : {
 
     },
     "Connection Name (optional)" : {
@@ -77,10 +90,10 @@
     "Downloading %@" : {
 
     },
-    "Downloading to local" : {
+    "Edit" : {
 
     },
-    "Edit" : {
+    "Edit Connection" : {
 
     },
     "Error" : {
@@ -95,6 +108,12 @@
     "Listing %@" : {
 
     },
+    "Loading files..." : {
+
+    },
+    "Local Error" : {
+
+    },
     "Local Files" : {
 
     },
@@ -104,7 +123,13 @@
     "New Folder" : {
 
     },
+    "No Files" : {
+
+    },
     "No saved connections" : {
+
+    },
+    "No shares available" : {
 
     },
     "Not connected" : {
@@ -135,6 +160,9 @@
 
     },
     "Refresh" : {
+
+    },
+    "Save" : {
 
     },
     "Save Connection" : {
@@ -170,6 +198,12 @@
     "TD Mouse" : {
 
     },
+    "TD Mouse Error" : {
+
+    },
+    "This folder is empty" : {
+
+    },
     "Transfer Speed" : {
 
     },
@@ -179,13 +213,13 @@
     "Upload File" : {
 
     },
-    "Upload to SMB" : {
+    "Upload Folder to TD Mouse" : {
+
+    },
+    "Upload to TD Mouse" : {
 
     },
     "Uploading %@" : {
-
-    },
-    "Uploading to SMB" : {
 
     },
     "Username" : {

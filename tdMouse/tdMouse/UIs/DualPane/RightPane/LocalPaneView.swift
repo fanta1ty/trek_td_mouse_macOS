@@ -11,8 +11,11 @@ import SMBClient
 
 struct LocalPaneView: View {
     @ObservedObject var viewModel: LocalFileViewModel
+    @ObservedObject var transferManager: TransferManager
+    
     let onFileTap: (LocalFile) -> Void
-    let onFileDrop: ([File]) -> Void
+    let onFolderUpload: (LocalFile) -> Void
+    let onSmbFileDrop: (NSItemProvider) -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -31,6 +34,13 @@ struct LocalPaneView: View {
                 }
                 .disabled(!viewModel.canNavigateUp)
                 .padding(.trailing)
+                
+                Button(action: {
+                    viewModel.refreshFiles()
+                }) {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .padding(.trailing)
             }
             .padding(.vertical, 8)
             .background(Color(NSColor.controlBackgroundColor))
@@ -47,45 +57,42 @@ struct LocalPaneView: View {
             .background(Color(NSColor.textBackgroundColor))
             
             // File list
-            List {
-                ForEach(viewModel.files, id: \.name) { file in
-                    LocalFileRow(file: file, viewModel: viewModel, onFileTap: onFileTap)
+            if viewModel.isLoading {
+                ProgressView("Loading files...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if viewModel.files.isEmpty {
+                VStack {
+                    Spacer()
+                    Image(systemName: "doc.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary)
+                    Text("No Files")
+                        .font(.title2)
+                    Text("This folder is empty")
+                        .foregroundColor(.secondary)
+                    Spacer()
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
+                    ForEach(viewModel.files, id: \.id) { file in
+                        LocalFileRow(
+                            viewModel: viewModel,
+                            file: file,
+                            onTap: onFileTap
+                        )
+                    }
+                }
+                .listStyle(PlainListStyle())
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .onDrop(of: [.plainText], isTargeted: nil) { providers -> Bool in
-            handleDrop(providers)
-            return true
-        }
-    }
-    
-    private func handleDrop(_ providers: [NSItemProvider]) -> Void {
-        for provider in providers {
-            provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) { secureData, error in
-                guard error == nil else { return }
-                
-                DispatchQueue.main.async {
-                    if let string = secureData as? String {
-                        NotificationCenter.default.post(
-                            name: Notification.Name("ProcessSMBFileDrop"),
-                            object: string
-                        )
-                    } else if let nsString = secureData as? NSString {
-                        NotificationCenter.default.post(
-                            name: Notification.Name("ProcessSMBFileDrop"),
-                            object: nsString as String
-                        )
-                    } else if let data = secureData as? Data,
-                              let string = String(data: data, encoding: .utf8) {
-                        NotificationCenter.default.post(
-                            name: Notification.Name("ProcessSMBFileDrop"),
-                            object: string
-                        )
-                    }
-                }
+        .onDrop(of: [UTType.plainText.identifier], isTargeted: nil) { providers -> Bool in
+            for provider in providers {
+                onSmbFileDrop(provider)
             }
+            return true
         }
     }
 }
@@ -94,8 +101,10 @@ struct LocalPaneView_Previews: PreviewProvider {
     static var previews: some View {
         LocalPaneView(
             viewModel: LocalFileViewModel(),
-            onFileTap: { _ in},
-            onFileDrop: { _ in }
+            transferManager: TransferManager(),
+            onFileTap: { _ in },
+            onFolderUpload: { _ in },
+            onSmbFileDrop: { _ in }
         )
     }
 }

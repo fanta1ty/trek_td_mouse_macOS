@@ -14,19 +14,8 @@ struct SharesSidebarView: View {
     
     @AppStorage("savedConnections") private var savedConnectionsData: Data = Data()
     @State private var savedConnections: [SavedConnection] = []
-    
-    struct SavedConnection: Identifiable, Codable {
-        var id = UUID()
-        var name: String
-        var host: String
-        var port: UInt16
-        var username: String
-        var domain: String
-        
-        var displayName: String {
-            return name.isEmpty ? host : name
-        }
-    }
+    @State private var connectionToEdit: SavedConnection?
+    @State private var isEditSheetPresented = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -55,6 +44,7 @@ struct SharesSidebarView: View {
                     Circle()
                         .fill(Color.green)
                         .frame(width: 8, height: 8)
+                    
                     Text(viewModel.credentials.host)
                         .font(.subheadline)
                         .lineLimit(1)
@@ -113,7 +103,8 @@ struct SharesSidebarView: View {
                                 connectTo(connection)
                             }
                             Button("Edit") {
-                                // Edit connection (for future implementation)
+                                connectionToEdit = connection
+                                isEditSheetPresented = true
                             }
                             Divider()
                             Button("Delete") {
@@ -132,24 +123,31 @@ struct SharesSidebarView: View {
                 
                 if viewModel.connectionState == .connected {
                     Section("Available Shares") {
-                        ForEach(viewModel.availableShares, id: \.self) { share in
-                            Button(action: {
-                                connectToShare(share)
-                            }) {
-                                HStack {
-                                    Image(systemName: "folder")
-                                        .foregroundColor(.accentColor)
-                                    Text(share)
-                                    
-                                    Spacer()
-                                    
-                                    if viewModel.shareName == share {
-                                        Image(systemName: "checkmark")
+                        if viewModel.availableShares.isEmpty {
+                            Text("No shares available")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.vertical, 4)
+                        } else {
+                            ForEach(viewModel.availableShares, id: \.self) { share in
+                                Button(action: {
+                                    connectToShare(share)
+                                }) {
+                                    HStack {
+                                        Image(systemName: "folder")
                                             .foregroundColor(.accentColor)
+                                        Text(share)
+                                        
+                                        Spacer()
+                                        
+                                        if viewModel.shareName == share {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.accentColor)
+                                        }
                                     }
                                 }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -193,6 +191,17 @@ struct SharesSidebarView: View {
         }
         .frame(width: 240)
         .onAppear(perform: loadSavedConnections)
+        .sheet(isPresented: $isEditSheetPresented) {
+            if let connection = connectionToEdit {
+                EditConnectionView(
+                    connection: connection,
+                    isPresented: $isEditSheetPresented,
+                    onSave: { updatedConnection in
+                        updateSavedConnection(updatedConnection)
+                    }
+                )
+            }
+        }
     }
     
     private func connectTo(_ connection: SavedConnection) {
@@ -257,6 +266,13 @@ struct SharesSidebarView: View {
             savedConnectionsData = try encoder.encode(savedConnections)
         } catch {
             print("Failed to save connections: \(error)")
+        }
+    }
+    
+    private func updateSavedConnection(_ connection: SavedConnection) {
+        if let index = savedConnections.firstIndex(where: { $0.id == connection.id }) {
+            savedConnections[index] = connection
+            saveConnections()
         }
     }
 }

@@ -8,17 +8,33 @@
 import SwiftUI
 
 struct LocalFileRow: View {
-    let file: LocalFile
     @ObservedObject var viewModel: LocalFileViewModel
-    let onFileTap: (LocalFile) -> Void
+    let file: LocalFile
+    let onTap: (LocalFile) -> Void
     
     var body: some View {
         LocalFileRowView(viewModel: viewModel, file: file)
             .contentShape(Rectangle())
             .onTapGesture(count: 2) {
-                onFileTap(file)
+                onTap(file)
             }
             .onDrag {
+                let fileInfo = [
+                    "path": file.url.path,
+                    "name": file.name,
+                    "isDirectory": file.isDirectory ? "true" : "false",
+                    "type": "localFile"
+                ]
+                
+                // Convert to JSON
+                if let jsonData = try? JSONSerialization.data(withJSONObject: fileInfo),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    let provider = NSItemProvider()
+                    provider.registerObject(jsonString as NSString, visibility: .all)
+                    return provider
+                }
+                
+                // Fallback to simple URL provider
                 let provider = NSItemProvider(object: file.url as NSURL)
                 return provider
             }
@@ -31,11 +47,21 @@ struct LocalFileRow: View {
     private func fileContextMenu() -> some View {
         if file.isDirectory {
             Button("Open") {
-                onFileTap(file)
+                onTap(file)
+            }
+            
+            Button("Upload Folder to TD Mouse") {
+                NotificationCenter.default.post(
+                    name: Notification.Name("UploadLocalFolder"),
+                    object: file
+                )
             }
         } else {
-            Button("Upload to SMB") {
-                NotificationCenter.default.post(name: Notification.Name("UploadLocalFile"), object: file)
+            Button("Upload to TD Mouse") {
+                NotificationCenter.default.post(
+                    name: Notification.Name("UploadLocalFile"),
+                    object: file
+                )
             }
         }
         
@@ -48,14 +74,13 @@ struct LocalFileRow: View {
 struct LocalFileRow_Preview: PreviewProvider {
     static var previews: some View {
         LocalFileRow(
-            file: .init(
+            viewModel: LocalFileViewModel(), file: .init(
                 name: "Name",
                 url: .homeDirectory,
                 isDirectory: false,
                 size: 100
             ),
-            viewModel: LocalFileViewModel(),
-            onFileTap: { _ in }
+            onTap: { _ in }
         )
     }
 }

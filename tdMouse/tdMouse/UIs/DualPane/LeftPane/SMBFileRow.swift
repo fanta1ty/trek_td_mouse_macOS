@@ -20,7 +20,26 @@ struct SMBFileRow: View {
                 onFileTap(file)
             }
             .onDrag {
-                let provider = NSItemProvider(object: file.name as NSString)
+//                let provider = NSItemProvider(object: file.name as NSString)
+//                return provider
+                // Create a dictionary with the file information
+                let fileInfo = [
+                    "fileName": file.name,
+                    "isDirectory": file.isDirectory ? "true" : "false",
+                    "type": "smbFile"
+                ]
+                
+                // Convert to JSON
+                if let jsonData = try? JSONSerialization.data(withJSONObject: fileInfo),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    let provider = NSItemProvider()
+                    provider.registerObject(jsonString as NSString, visibility: .all)
+                    return provider
+                }
+                
+                // Fallback if JSON fails
+                let provider = NSItemProvider()
+                provider.registerObject(file.name as NSString, visibility: .all)
                 return provider
             }
             .contextMenu {

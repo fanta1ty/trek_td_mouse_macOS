@@ -5,12 +5,12 @@ import AppKit
 import SMBClient
 
 struct DualPaneFileTransferView: View {
+    @ObservedObject private var transferManager = TransferManager()
     @StateObject private var smbViewModel = FileTransferViewModel()
     @StateObject private var localViewModel = LocalFileViewModel()
     @State private var isConnectSheetPresented = false
     @State private var isCreateFolderSheetPresented = false
     @State private var newFolderName = ""
-    @State private var activeTransfer: TransferDirection?
     @State private var isSidebarVisible = true
     
     var body: some View {
@@ -27,8 +27,9 @@ struct DualPaneFileTransferView: View {
                 onNewFolder: { isCreateFolderSheetPresented.toggle() }
             )
             
-            // Main content with two-pane file browser
+            // Main content with three-pane file browser
             HStack(spacing: 0) {
+                // Left sidebar for SMB Shares
                 if isSidebarVisible {
                     SharesSidebarView(
                         viewModel: smbViewModel,
@@ -38,7 +39,7 @@ struct DualPaneFileTransferView: View {
                     Divider()
                 }
                 
-                // Left pane - SMB server files
+                // Middle pane - SMB server files
                 SMBPaneView(
                     viewModel: smbViewModel,
                     onFileTap: handleSmbFileTap
@@ -50,8 +51,10 @@ struct DualPaneFileTransferView: View {
                 // Right pane - Local files
                 LocalPaneView(
                     viewModel: localViewModel,
+                    transferManager: transferManager,
                     onFileTap: handleLocalFileTap,
-                    onFileDrop: handleSmbFilesDrop
+                    onFolderUpload: uploadFolder,
+                    onSmbFileDrop: handleSmbFilesDropOnLocal
                 )
             }
             
@@ -59,13 +62,8 @@ struct DualPaneFileTransferView: View {
             StatusBarView(
                 smbViewModel: smbViewModel,
                 localViewModel: localViewModel,
-                activeTransfer: activeTransfer
+                transferManager: transferManager
             )
-        }
-        // Setup drop handling for local file uploads
-        .onDrop(of: [.fileURL], isTargeted: nil) { providers -> Bool in
-            handleLocalFileURLDrop(providers)
-            return true
         }
         // Sheets
         .sheet(isPresented: $isConnectSheetPresented) {
@@ -86,7 +84,7 @@ struct DualPaneFileTransferView: View {
             }
         }
         // Alerts
-        .alert("Error", isPresented: .init(
+        .alert("TD Mouse Error", isPresented: .init(
             get: { !smbViewModel.errorMessage.isEmpty },
             set: { if !$0 { smbViewModel.errorMessage = "" } }
         )) {
@@ -94,7 +92,7 @@ struct DualPaneFileTransferView: View {
         } message: {
             Text(smbViewModel.errorMessage)
         }
-        .alert("Error", isPresented: .init(
+        .alert("Local Error", isPresented: .init(
             get: { !localViewModel.errorMessage.isEmpty },
             set: { if !$0 { localViewModel.errorMessage = "" } }
         )) {
@@ -105,7 +103,6 @@ struct DualPaneFileTransferView: View {
         // Setup notification observers
         .onAppear {
             setupNotificationObservers()
-            // Initialize local file system browser
             localViewModel.initialize()
         }
     }
@@ -131,37 +128,49 @@ struct DualPaneFileTransferView: View {
     }
     
     private func downloadFile(_ file: File) {
-        // Download to current local directory
-        Task {
-            activeTransfer = .toLocal
-            defer { activeTransfer = nil }
-            
-            do {
-                let data = try await smbViewModel.downloadFile(fileName: file.name)
-                let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(file.name)
-                try data.write(to: localURL)
-                
-                // Refresh local files
-                localViewModel.refreshFiles()
-            } catch {
-                print("Download failed: \(error)")
-            }
+        let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(file.name)
+        transferManager.startSingleFileDownload(
+            file: file,
+            destinationURL: localURL,
+            smbViewModel: smbViewModel
+        ) {
+            // Refresh on completion
+            localViewModel.refreshFiles()
         }
     }
     
     private func uploadFile(_ file: LocalFile) {
-        let fileURL = localViewModel.currentDirectoryURL.appendingPathComponent(file.name)
-        
-        Task {
-            activeTransfer = .toRemote
-            defer { activeTransfer = nil }
-            
-            do {
-                try await smbViewModel.uploadLocalFile(url: fileURL)
-            } catch {
-                print("Upload error: \(error)")
-            }
+        transferManager.startSingleFileUpload(
+            file: file,
+            smbViewModel: smbViewModel,
+            onComplete: {}
+        )
+    }
+    
+    private func downloadFolder(_ file: File) {
+        let destURL = localViewModel.currentDirectoryURL.appendingPathComponent(file.name)
+        transferManager.startFolderDownload(folder: file, destination: destURL, smbViewModel: smbViewModel) {
+            localViewModel.refreshFiles()
         }
+    }
+    
+    private func uploadFolder(_ file: LocalFile) {
+        transferManager.startFolderUpload(folder: file, smbViewModel: smbViewModel, onComplete: {})
+    }
+    
+    private func handleSmbFilesDropOnLocal(_ provider: NSItemProvider) {
+        transferManager.handleSmbFileDroppedToLocal(
+            provider: provider,
+            smbViewModel: smbViewModel,
+            localViewModel: localViewModel
+        )
+    }
+    
+    private func handleLocalFilesDropOnSMB(_ provider: NSItemProvider) {
+        transferManager.handleLocalFileDroppedToSMB(
+            provider: provider,
+            smbViewModel: smbViewModel
+        )
     }
     
     private func handleSmbFilesDrop(_ files: [File]) {
@@ -214,6 +223,17 @@ struct DualPaneFileTransferView: View {
             }
         }
         
+        // Folder download notifications
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("DownloadSMBFolder"),
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let folder = notification.object as? File {
+                downloadFolder(folder)
+            }
+        }
+        
         NotificationCenter.default.addObserver(
             forName: Notification.Name("UploadLocalFile"),
             object: nil,
@@ -232,6 +252,17 @@ struct DualPaneFileTransferView: View {
             if let fileName = notification.object as? String,
                let file = smbViewModel.getFileByName(fileName) {
                 downloadFile(file)
+            }
+        }
+        
+        // Folder upload notifications
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("UploadLocalFolder"),
+            object: nil,
+            queue: .main
+        ) { notification in
+            if let folder = notification.object as? LocalFile {
+                uploadFolder(folder)
             }
         }
     }
