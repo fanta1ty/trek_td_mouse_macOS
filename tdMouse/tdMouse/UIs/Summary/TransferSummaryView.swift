@@ -30,8 +30,16 @@ struct TransferSummaryView: View {
             
             // Stats grid
             VStack(spacing: 16) {
-                statRow(label: "File Size", value: formatFileSize(stats.fileSize))
-                statRow(label: "Time Taken", value: formatDuration(stats.duration))
+                statRow(
+                    label: "File Size",
+                    value: Helpers.formatFileSize(stats.fileSize)
+                )
+                
+                statRow(
+                    label: "Time Taken",
+                    value: formatDuration(stats.duration)
+                )
+                
                 statRow(label: "Average Speed", value: formatSpeed(stats.averageSpeed))
                 statRow(label: "Maximum Speed", value: formatSpeed(stats.maxSpeed))
             }
@@ -74,13 +82,6 @@ struct TransferSummaryView: View {
                 .bold()
                 .multilineTextAlignment(.trailing)
         }
-    }
-    
-    private func formatFileSize(_ size: UInt64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.allowedUnits = [.useAll]
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: Int64(size))
     }
     
     private func formatDuration(_ duration: TimeInterval) -> String {

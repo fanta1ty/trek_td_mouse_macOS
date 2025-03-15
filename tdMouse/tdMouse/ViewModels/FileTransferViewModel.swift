@@ -477,13 +477,6 @@ extension FileTransferViewModel {
     func isDirectory(_ file: File) -> Bool {
         file.isDirectory
     }
-    
-    func formatFileSize(_ size: UInt64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.allowedUnits = [.useAll]
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: Int64(size))
-    }
 }
 
 // MARK: - Transfer Statistics Methods
