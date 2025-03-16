@@ -62,9 +62,7 @@ class FileTransferViewModel: ObservableObject {
     /// Connect to the SMB server
     func connect() async throws {
         guard isCredentialsValid else {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
-                
+            await MainActor.run {
                 self.errorMessage = "Invalid credentials"
                 self.connectionState = .error("Invalid credentials")
             }
@@ -72,9 +70,7 @@ class FileTransferViewModel: ObservableObject {
             throw NSError(domain: "SMBClientError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid credentials"])
         }
         
-        await MainActor.run { [weak self] in
-            guard let self else { return }
-            
+        await MainActor.run {
             self.connectionState = .connecting
             self.errorMessage = ""
         }
@@ -83,8 +79,7 @@ class FileTransferViewModel: ObservableObject {
             let newClient = SMBClient(host: credentials.host, port: credentials.port)
             try await newClient.login(username: credentials.username, password: credentials.password)
             
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.client = newClient
                 self.connectionState = .connected
             }
@@ -92,8 +87,7 @@ class FileTransferViewModel: ObservableObject {
             // Fetch available shares after successful connection
             try await fetchShares()
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.connectionState = .error(error.localizedDescription)
                 self.errorMessage = "Connection failed: \(error.localizedDescription)"
             }
@@ -104,30 +98,26 @@ class FileTransferViewModel: ObservableObject {
     /// Fetch available shares from the server
     func fetchShares() async throws {
         guard let client, connectionState == .connected else {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Not connected to server"
             }
             throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
         }
         
-        await MainActor.run { [weak self] in
-            guard let self else { return }
+        await MainActor.run {
             self.transferState = .listing("shares")
         }
         
         do {
             let shares = try await client.listShares()
             
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 
                 self.availableShares = shares.map({ $0.name })
                 self.transferState = .none
             }
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.transferState = .none
                 self.errorMessage = "Failed to list shares: \(error.localizedDescription)"
             }
@@ -137,8 +127,7 @@ class FileTransferViewModel: ObservableObject {
     /// Disconnect from the SMB server
     func disconnect() async throws {
         guard let client else {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.connectionState = .disconnected
             }
             return
@@ -150,16 +139,14 @@ class FileTransferViewModel: ObservableObject {
                 try await client.logoff()
             }
             
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.client = nil
                 self.connectionState = .disconnected
                 self.availableShares = []
                 self.files = []
             }
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Disconnect failed: \(error.localizedDescription)"
             }
             throw error
@@ -169,8 +156,7 @@ class FileTransferViewModel: ObservableObject {
     /// Connect to a specific share
     func connectToShare(_ shareName: String) async throws {
         guard let client, connectionState == .connected else {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Not connected to server"
             }
             throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
@@ -180,16 +166,14 @@ class FileTransferViewModel: ObservableObject {
             try await client.connectShare(shareName)
             let files = try await client.listDirectory(path: currentDirectory)
             
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.files = files
                 self.shareName = shareName
                 self.currentDirectory = ""
             }
             
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Failed to connect to share: \(error.localizedDescription)"
             }
             throw error
@@ -199,30 +183,26 @@ class FileTransferViewModel: ObservableObject {
     /// List files in a specific directory
     func listFiles(_ path: String) async throws {
         guard let client, connectionState == .connected else {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Not connected to server"
             }
             throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
         }
         
-        await MainActor.run { [weak self] in
-            guard let self else { return }
+        await MainActor.run {
             self.transferState = .listing(path)
         }
         
         do {
             let files = try await client.listDirectory(path: path)
             
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.files = files
                 self.currentDirectory = path
                 self.transferState = .none
             }
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Failed to list files: \(error.localizedDescription)"
                 self.transferState = .none
             }
@@ -258,8 +238,7 @@ class FileTransferViewModel: ObservableObject {
     /// Download a file from the server
     func downloadFile(fileName: String) async throws -> Data {
         guard let client, connectionState == .connected else {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Not connected to server"
             }
             throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
@@ -276,8 +255,7 @@ class FileTransferViewModel: ObservableObject {
         let fileInfo = try await getFileInfo(fileName: fileName)
         let fileSize = fileInfo?.size ?? 0
         
-        await MainActor.run { [weak self] in
-            guard let self else { return }
+        await MainActor.run {
             self.transferState = .downloading(fileName)
             self.transferProgress = 0.0
             self.startTransferTracking(
@@ -298,8 +276,7 @@ class FileTransferViewModel: ObservableObject {
                 }
             }
             
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.transferState = .none
                 self.transferProgress = 1.0
             }
@@ -307,8 +284,7 @@ class FileTransferViewModel: ObservableObject {
             
             return data
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Download failed: \(error.localizedDescription)"
                 self.transferState = .none
                 self.stopSpeedSamplingTimer()
@@ -320,8 +296,7 @@ class FileTransferViewModel: ObservableObject {
     /// Delete a file or directory on the server
     func deleteItem(name: String, isDirectory: Bool) async throws {
         guard let client, connectionState == .connected else {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Not connected to server"
             }
             throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
@@ -338,8 +313,7 @@ class FileTransferViewModel: ObservableObject {
             try await client.deleteFile(path: itemPath)
             try await listFiles(currentDirectory)
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Failed to delete item: \(error.localizedDescription)"
             }
             throw error
@@ -376,8 +350,7 @@ class FileTransferViewModel: ObservableObject {
     /// Create a new directory on the server
     func createDirectory(directoryName: String) async throws {
         guard let client, connectionState == .connected else {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Not connected to server"
             }
             throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
@@ -394,8 +367,7 @@ class FileTransferViewModel: ObservableObject {
             try await client.createDirectory(path: directoryPath)
             try await listFiles(currentDirectory)
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Failed to create directory: \(error.localizedDescription)"
             }
             throw error
@@ -417,8 +389,7 @@ class FileTransferViewModel: ObservableObject {
             let data = try Data(contentsOf: url)
             try await uploadFile(data: data, fileName: url.lastPathComponent)
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Failed to read local file: \(error.localizedDescription)"
             }
             throw error
@@ -428,8 +399,7 @@ class FileTransferViewModel: ObservableObject {
     /// Upload a file to the server
     func uploadFile(data: Data, fileName: String) async throws {
         guard let client, connectionState == .connected else {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Not connected to server"
             }
             throw NSError(domain: "SMBClientError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Not connected to server"])
@@ -444,8 +414,7 @@ class FileTransferViewModel: ObservableObject {
         
         let fileSize = UInt64(data.count)
         
-        await MainActor.run { [weak self] in
-            guard let self else { return }
+        await MainActor.run {
             self.transferState = .uploading(fileName)
             self.transferProgress = 0.0
             self.startTransferTracking(
@@ -464,8 +433,7 @@ class FileTransferViewModel: ObservableObject {
                 }
             }
             
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.transferProgress = 1.0
                 self.transferState = .none
             }
@@ -475,8 +443,7 @@ class FileTransferViewModel: ObservableObject {
             try await listFiles(currentDirectory)
             
         } catch {
-            await MainActor.run { [weak self] in
-                guard let self else { return }
+            await MainActor.run {
                 self.errorMessage = "Upload failed: \(error.localizedDescription)"
                 self.transferState = .none
                 self.stopSpeedSamplingTimer()
@@ -586,8 +553,7 @@ extension FileTransferViewModel {
             speedSamples: speedSamples
         )
         
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
+        DispatchQueue.main.async {
             self.lastTransferStats = stats
             self.showTransferSummary = true
         }

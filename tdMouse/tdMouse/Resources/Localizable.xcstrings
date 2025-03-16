@@ -99,6 +99,9 @@
     "Error" : {
 
     },
+    "Error loading file" : {
+
+    },
     "Folder Name" : {
 
     },
@@ -106,6 +109,9 @@
 
     },
     "Listing %@" : {
+
+    },
+    "Loading file..." : {
 
     },
     "Loading files..." : {
