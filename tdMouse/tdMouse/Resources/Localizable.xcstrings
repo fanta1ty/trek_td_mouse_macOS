@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    ".%@ files cannot be previewed directly." : {
+
+    },
     "%@ Complete" : {
 
     },
@@ -84,6 +87,9 @@
     "Domain (optional)" : {
 
     },
+    "Donwload Folder" : {
+
+    },
     "Download" : {
 
     },
@@ -100,6 +106,9 @@
 
     },
     "Error loading file" : {
+
+    },
+    "File Preview Unavailable" : {
 
     },
     "Folder Name" : {
@@ -216,6 +225,9 @@
     "Transfer Speed" : {
 
     },
+    "Try downloading the file to view it in a compatible application." : {
+
+    },
     "Upload" : {
 
     },
@@ -232,6 +244,9 @@
 
     },
     "Username" : {
+
+    },
+    "View File" : {
 
     }
   },

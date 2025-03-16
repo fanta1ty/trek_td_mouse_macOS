@@ -114,8 +114,8 @@ struct DualPaneFileTransferView: View {
         }
         // Setup notification observers
         .onAppear {
-            setupNotificationObservers()
-            localViewModel.initialize()
+             setupNotificationObservers()
+             localViewModel.initialize()
         }
         .onDisappear {
             NotificationCenter.default.removeObserver(self)

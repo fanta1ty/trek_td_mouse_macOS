@@ -53,10 +53,25 @@ struct SMBFileRow: View {
             Button("Open") {
                 onFileTap(file)
             }
+            
+            Button("Donwload Folder") {
+                NotificationCenter.default.post(
+                    name: Notification.Name("DownloadSMBFolder"),
+                    object: file
+                )
+            }
         } else {
             Button("Download") {
-                NotificationCenter.default.post(name: Notification.Name("DownloadSMBFile"), object: file)
+                NotificationCenter.default.post(
+                    name: Notification.Name("DownloadSMBFile"),
+                    object: file
+                )
             }
+            
+            SMBFilePreviewButton(
+                viewModel: viewModel,
+                file: file
+            )
         }
         
         Button("Delete") {
