@@ -10,7 +10,7 @@ import SwiftUI
 import Combine
 import SMBClient
 
-class FileNotificationCenter {
+class FileNotificationCenter: ObservableObject {
     static let shared = FileNotificationCenter()
     
     // Notification names
