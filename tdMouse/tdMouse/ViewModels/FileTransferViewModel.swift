@@ -41,13 +41,7 @@ class FileTransferViewModel: ObservableObject {
     private var currentTransferType: TransferStats.TransferType = .download
     
     init(credentials: SMBServerCredentials? = nil) {
-        self.credentials = credentials ?? SMBServerCredentials(
-//            host: "192.168.50.24",
-            host: "10.211.55.4",
-            username: "sambauser",
-            password: "123456",
-            domain: "share"
-        )
+        self.credentials = credentials ?? SMBServerCredentials.sample2
         
         $credentials
             .map { credential in
