@@ -17,7 +17,7 @@ struct SMBFilePreviewButton: View {
             Task {
                 do {
                     // Download the file data
-                    let data = try await viewModel.downloadFile(fileName: file.name)
+                    let data = try await viewModel.downloadFile(fileName: file.name, trackTransfer: false)
                     let fileExt = file.name.components(separatedBy: ".").last ?? ""
                     
                     // Display file using preview manager

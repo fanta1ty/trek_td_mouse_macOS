@@ -73,19 +73,25 @@ struct Helpers {
         
         let previewableExtensions = [
             // Images
-            "jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic",
+            "jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "webp", "svg",
             
             // Documents
             "pdf", "txt", "rtf", "md", "csv", "json", "xml",
             
-            // Media
-            "mp3", "wav", "m4a", "mp4", "mov", "avi", "m4v",
+            // Microsoft Office
+            "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+            
+            // Media - Video
+            "mp4", "mov", "avi", "mkv", "m4v", "wmv", "flv", "webm", "3gp",
+            
+            // Media - Audio
+            "mp3", "wav", "m4a", "aac", "ogg", "flac", "wma",
             
             // Web
             "html", "htm", "xhtml",
             
             // Code
-            "swift", "js", "py", "css", "java", "c", "cpp", "h"
+            "swift", "js", "py", "css", "java", "c", "cpp", "h", "ts", "rb", "php", "go"
         ]
         
         return previewableExtensions.contains(fileExtension)

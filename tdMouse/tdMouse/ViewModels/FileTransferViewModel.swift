@@ -236,7 +236,7 @@ class FileTransferViewModel: ObservableObject {
     }
     
     /// Download a file from the server
-    func downloadFile(fileName: String) async throws -> Data {
+    func downloadFile(fileName: String, trackTransfer: Bool = true) async throws -> Data {
         guard let client, connectionState == .connected else {
             await MainActor.run {
                 self.errorMessage = "Not connected to server"
@@ -258,11 +258,14 @@ class FileTransferViewModel: ObservableObject {
         await MainActor.run {
             self.transferState = .downloading(fileName)
             self.transferProgress = 0.0
-            self.startTransferTracking(
-                fileName: fileName,
-                fileSize: fileSize,
-                type: .download
-            )
+            
+            if trackTransfer {
+                self.startTransferTracking(
+                    fileName: fileName,
+                    fileSize: fileSize,
+                    type: .download
+                )
+            }
         }
         
         do {
@@ -271,8 +274,11 @@ class FileTransferViewModel: ObservableObject {
                 
                 DispatchQueue.main.async {
                     self.transferProgress = progress
-                    let bytesTransferred = UInt64(progress * Double(fileSize))
-                    self.updateTransferProgress(bytesTransferred: bytesTransferred)
+                    
+                    if trackTransfer {
+                        let bytesTransferred = UInt64(progress * Double(fileSize))
+                        self.updateTransferProgress(bytesTransferred: bytesTransferred)
+                    }
                 }
             }
             
@@ -280,14 +286,20 @@ class FileTransferViewModel: ObservableObject {
                 self.transferState = .none
                 self.transferProgress = 1.0
             }
-            finishTransferTracking(fileSize: UInt64(data.count))
+            
+            if trackTransfer {
+                finishTransferTracking(fileSize: UInt64(data.count))
+            }
             
             return data
         } catch {
             await MainActor.run {
                 self.errorMessage = "Download failed: \(error.localizedDescription)"
                 self.transferState = .none
-                self.stopSpeedSamplingTimer()
+                
+                if trackTransfer {
+                    self.stopSpeedSamplingTimer()
+                }
             }
             throw error
         }
