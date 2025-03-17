@@ -1,19 +1,252 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Activities" : {
+    ".%@ files cannot be previewed directly." : {
+
+    },
+    "%@ Complete" : {
+
+    },
+    "%lld items on server • %lld local items" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld items on server • %2$lld local items"
+          }
+        }
+      }
+    },
+    "%lld/%lld items" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld items"
+          }
+        }
+      }
+    },
+    "%lld%%" : {
+
+    },
+    "Add new connection" : {
+
+    },
+    "Available Shares" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Close" : {
 
     },
     "Connect" : {
 
     },
+    "Connect to Server" : {
+
+    },
+    "Connect to SMB Server" : {
+
+    },
+    "Connected to %@" : {
+
+    },
+    "Connecting..." : {
+
+    },
+    "Connection Name" : {
+
+    },
+    "Connection Name (optional)" : {
+
+    },
+    "Connections" : {
+
+    },
+    "Create" : {
+
+    },
+    "Create New Folder" : {
+
+    },
+    "Credentials" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Disconnect" : {
+
+    },
+    "Disconnected" : {
+
+    },
+    "Domain (optional)" : {
+
+    },
+    "Donwload Folder" : {
+
+    },
+    "Download" : {
+
+    },
+    "Downloading %@" : {
+
+    },
+    "Edit" : {
+
+    },
+    "Edit Connection" : {
+
+    },
+    "Error" : {
+
+    },
+    "Error loading file" : {
+
+    },
+    "File Preview Unavailable" : {
+
+    },
+    "Folder Name" : {
+
+    },
+    "Host" : {
+
+    },
+    "Listing %@" : {
+
+    },
+    "Loading file..." : {
+
+    },
+    "Loading files..." : {
+
+    },
+    "Local Error" : {
+
+    },
+    "Local Files" : {
+
+    },
+    "More Options..." : {
+
+    },
     "New Folder" : {
 
     },
-    "Queued" : {
-      "comment" : "(progressBytes) of (totalBytes)"
+    "No Files" : {
+
     },
-    "untitled folder" : {
+    "No saved connections" : {
+
+    },
+    "No shares available" : {
+
+    },
+    "Not connected" : {
+
+    },
+    "Not Connected" : {
+
+    },
+    "Note: Password will not be saved" : {
+
+    },
+    "OK" : {
+
+    },
+    "Open" : {
+
+    },
+    "Password" : {
+
+    },
+    "Port" : {
+
+    },
+    "Port:" : {
+
+    },
+    "Reconnect" : {
+
+    },
+    "Refresh" : {
+
+    },
+    "Save" : {
+
+    },
+    "Save Connection" : {
+
+    },
+    "Save connection for future use" : {
+
+    },
+    "Saved Connections" : {
+
+    },
+    "Select a server to connect" : {
+
+    },
+    "Server" : {
+
+    },
+    "Server Details" : {
+
+    },
+    "Shares" : {
+
+    },
+    "SMB File Transfer" : {
+
+    },
+    "SMB Server" : {
+
+    },
+    "SMB: %@" : {
+
+    },
+    "TD Mouse" : {
+
+    },
+    "TD Mouse Error" : {
+
+    },
+    "This folder is empty" : {
+
+    },
+    "Toggle sidebar" : {
+
+    },
+    "Transfer Speed" : {
+
+    },
+    "Try downloading the file to view it in a compatible application." : {
+
+    },
+    "Upload" : {
+
+    },
+    "Upload File" : {
+
+    },
+    "Upload Folder to TD Mouse" : {
+
+    },
+    "Upload to TD Mouse" : {
+
+    },
+    "Uploading %@" : {
+
+    },
+    "Username" : {
+
+    },
+    "View File" : {
 
     }
   },
