@@ -9,8 +9,9 @@ import SwiftUI
 import SMBClient
 
 struct SMBFileRow: View {
-    let file: File
     @ObservedObject var viewModel: FileTransferViewModel
+    
+    let file: File
     let onFileTap: (File) -> Void
     
     var body: some View {

@@ -8,22 +8,30 @@
 import SwiftUI
 
 struct LocalFilePreviewButton: View {
-    @State private var showPreview: Bool = false
     let file: LocalFile
     
     var body: some View {
         Button("View File") {
-            showPreview = true
+            Task {
+                do {
+                    // Get file data
+                    let data = try Data(contentsOf: file.url)
+                    let fileExt = file.name.components(separatedBy: ".").last ?? ""
+                    
+                    // Display file using preview manager
+                    DispatchQueue.main.async {
+                        FilePreviewManager.shared.showPreview(
+                            title: "Preview: \(file.name)",
+                            data: data,
+                            fileExtension: fileExt,
+                            originalFileName: file.name
+                        )
+                    }
+                } catch {
+                    print("Preview error: \(error)")
+                }
+            }
         }
         .disabled(file.isDirectory || !Helpers.isPreviewableFileType(file.name))
-        .sheet(isPresented: $showPreview) {
-            UniversalFilePreviewView(
-                title: file.name,
-                fileProvider: {
-                    return try Data(contentsOf: file.url)
-                },
-                fileExtension: file.name.components(separatedBy: ".").last ?? ""
-            )
-        }
     }
 }

@@ -64,7 +64,7 @@ struct LocalFileRow: View {
                 )
             }
             
-//            LocalFilePreviewButton(file: file)
+            LocalFilePreviewButton(file: file)
         }
         
         Button("Delete") {
