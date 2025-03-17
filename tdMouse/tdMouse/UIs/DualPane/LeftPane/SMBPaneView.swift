@@ -42,13 +42,58 @@ struct SMBPaneView: View {
             if viewModel.connectionState == .connected {
                 // Path bar
                 HStack {
-                    Text(viewModel.shareName + (viewModel.currentDirectory.isEmpty ? "" : "/" + viewModel.currentDirectory))
-                        .truncationMode(.middle)
-                        .lineLimit(1)
-                        .font(.caption)
-                        .padding(.horizontal)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 0) {
+                            // Root (share) button
+                            Button(action: {
+                                Task {
+                                    try await viewModel.listFiles("")
+                                }
+                            }) {
+                                Text(viewModel.shareName)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.blue.opacity(0.1))
+                                    .cornerRadius(4)
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                            
+                            if !viewModel.currentDirectory.isEmpty {
+                                Text("/")
+                                    .foregroundColor(.secondary)
+                                
+                                // Split the path and create clickable segments
+                                let pathComponents = viewModel.currentDirectory.components(separatedBy: "/")
+                                ForEach(0..<pathComponents.count, id: \.self) { index in
+                                    let component = pathComponents[index]
+                                    
+                                    // Build the path up to this segment
+                                    let subPath = pathComponents[0...index].joined(separator: "/")
+                                    
+                                    Button(action: {
+                                        Task {
+                                            try await viewModel.listFiles(subPath)
+                                        }
+                                    }) {
+                                        Text(component)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.blue.opacity(0.1))
+                                            .cornerRadius(4)
+                                    }
+                                    .buttonStyle(BorderlessButtonStyle())
+                                    
+                                    if index < pathComponents.count - 1 {
+                                        Text("/")
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 4)
+                    }
                 }
-                .frame(height: 24)
+                .frame(height: 28)
                 .background(Color(NSColor.textBackgroundColor))
                 
                 // File list

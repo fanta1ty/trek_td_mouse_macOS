@@ -152,4 +152,15 @@ class LocalFileViewModel: ObservableObject {
         }
         return nil
     }
+    
+    func navigateToURL(_ url: URL) {
+        guard url.startAccessingSecurityScopedResource() else { return }
+        defer { url.stopAccessingSecurityScopedResource() }
+        
+        var isDirectory: ObjCBool = false
+        if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory) && isDirectory.boolValue {
+            currentDirectoryURL = url
+            refreshFiles()
+        }
+    }
 }

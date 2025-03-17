@@ -4,6 +4,9 @@
     ".%@ files cannot be previewed directly." : {
 
     },
+    "/" : {
+
+    },
     "%@ Complete" : {
 
     },

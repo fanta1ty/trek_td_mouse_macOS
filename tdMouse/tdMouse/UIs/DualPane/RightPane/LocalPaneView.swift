@@ -47,13 +47,41 @@ struct LocalPaneView: View {
             
             // Path bar
             HStack {
-                Text(viewModel.currentDirectoryURL.path)
-                    .truncationMode(.middle)
-                    .lineLimit(1)
-                    .font(.caption)
-                    .padding(.horizontal)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 0) {
+                        let pathComponents = viewModel.currentDirectoryURL.pathComponents
+                        
+                        ForEach(0..<pathComponents.count, id: \.self) { index in
+                            let component = pathComponents[index]
+                            
+                            // Skip empty components
+                            if !component.isEmpty {
+                                // Create a path URL up to this component
+                                let subPath = pathComponents[0...index].joined(separator: "/")
+                                let subPathURL = URL(fileURLWithPath: subPath)
+                                
+                                Button(action: {
+                                    viewModel.navigateToURL(subPathURL)
+                                }) {
+                                    Text(component == "/" ? "Root" : component)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.blue.opacity(0.1))
+                                        .cornerRadius(4)
+                                }
+                                .buttonStyle(BorderlessButtonStyle())
+                                
+                                if index < pathComponents.count - 1 {
+                                    Text("/")
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
             }
-            .frame(height: 24)
+            .frame(height: 28)
             .background(Color(NSColor.textBackgroundColor))
             
             // File list
