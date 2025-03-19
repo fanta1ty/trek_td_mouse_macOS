@@ -230,6 +230,7 @@ class FileTransferViewModel: ObservableObject {
     }
     
     /// Download a file from the server
+    /// Download a file from the server
     func downloadFile(fileName: String, trackTransfer: Bool = true) async throws -> Data {
         guard let client, connectionState == .connected else {
             await MainActor.run {
@@ -279,10 +280,10 @@ class FileTransferViewModel: ObservableObject {
             await MainActor.run {
                 self.transferState = .none
                 self.transferProgress = 1.0
-            }
-            
-            if trackTransfer {
-                finishTransferTracking(fileSize: UInt64(data.count))
+                
+                if trackTransfer {
+                    self.finishTransferTracking(fileSize: UInt64(data.count))
+                }
             }
             
             return data
@@ -544,10 +545,15 @@ extension FileTransferViewModel {
     }
     
     /// Finish tracking a transfer and generate stats
+    /// Finish tracking a transfer and generate stats
     private func finishTransferTracking(fileSize: UInt64) {
         stopSpeedSamplingTimer()
         
-        guard let startTime = transferStartTime else { return }
+        guard let startTime = transferStartTime else {
+            print("Error: attempted to finish transfer tracking with no start time")
+            return
+        }
+        
         let endTime = Date()
         
         let stats = TransferStats(
@@ -559,13 +565,22 @@ extension FileTransferViewModel {
             speedSamples: speedSamples
         )
         
-        DispatchQueue.main.async {
+        // Make sure this runs on the main thread
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
             self.lastTransferStats = stats
-            self.showTransferSummary = true
+            
+            // Add a small delay to ensure UI updates properly
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.showTransferSummary = true
+            }
+            
+            print("Transfer complete: \(stats.fileName) - \(stats.fileSize)")
         }
         
         // Reset tracking data
         transferStartTime = nil
         speedSamples = []
+        currentFileName = ""
     }
 }
