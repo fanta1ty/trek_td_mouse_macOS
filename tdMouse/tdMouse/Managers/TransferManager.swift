@@ -16,6 +16,9 @@ class TransferManager: ObservableObject {
     @Published var currentTransferItem = ""
     @Published var totalTransferItems = 0
     @Published var processedTransferItems = 0
+    
+    // Flag to prevent multiple UI updates during folder operations
+    private var isFolderTransferInProgress = false
 }
 
 // MARK: - Single File Transfers
@@ -33,19 +36,17 @@ extension TransferManager {
             }
             
             do {
-                let data = try await smbViewModel.downloadFile(fileName: file.name)
+                // Download file with tracking enabled
+                let data = try await smbViewModel.downloadFile(fileName: file.name, trackTransfer: true)
                 try data.write(to: destinationURL)
                 
-                DispatchQueue.main.async {
-                    Task {
-                        try await Task.sleep(nanoseconds: 1_000_000_000)
-                        
-                        await MainActor.run {
-                            self.activeTransfer = nil
-                            self.currentTransferItem = ""
-                            onComplete()
-                        }
-                    }
+                // Wait a moment to show completion before clearing
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                
+                await MainActor.run {
+                    self.activeTransfer = nil
+                    self.currentTransferItem = ""
+                    onComplete()
                 }
             } catch {
                 print("Download failed: \(error)")
@@ -71,17 +72,12 @@ extension TransferManager {
             do {
                 try await smbViewModel.uploadLocalFile(url: file.url)
                 
-                DispatchQueue.main.async {
-                    // Give time for UI to show completion
-                    Task {
-                        try await Task.sleep(nanoseconds: 1_000_000_000)
-                        
-                        await MainActor.run {
-                            self.activeTransfer = nil
-                            self.currentTransferItem = ""
-                            onComplete()
-                        }
-                    }
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                
+                await MainActor.run {
+                    self.activeTransfer = nil
+                    self.currentTransferItem = ""
+                    onComplete()
                 }
             } catch {
                 print("Upload error: \(error)")
@@ -102,26 +98,82 @@ extension TransferManager {
         onComplete: @escaping () -> Void
     ) {
         Task {
+            // Check if a folder transfer is already in progress
+            let transferInProgress = await MainActor.run { self.isFolderTransferInProgress }
+            if transferInProgress {
+                print("Folder transfer already in progress, ignoring request")
+                return
+            }
+            
+            // Record start time for transfer stats
+            let startTime = Date()
+            var totalBytes: UInt64 = 0
+            
             await MainActor.run {
+                self.isFolderTransferInProgress = true
                 self.activeTransfer = .toRemote
                 self.totalTransferItems = 0
                 self.processedTransferItems = 0
+                self.currentTransferItem = folder.name
             }
             
-            await uploadFolderRecursively(url: folder.url, smbViewModel: smbViewModel)
-            
-            await MainActor.run {
-                self.activeTransfer = nil
-                self.currentTransferItem = ""
+            do {
+                // First, count all files in the folder to set accurate totals
+                let fileCount = await countFilesInFolder(url: folder.url)
                 
-                Task {
-                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                await MainActor.run {
+                    self.totalTransferItems = fileCount
+                }
+                
+                // Now upload the folder and track total bytes
+                totalBytes = await uploadFolderRecursivelyWithSizeTracking(
+                    url: folder.url,
+                    smbViewModel: smbViewModel
+                )
+                
+                // Create and display transfer summary
+                let endTime = Date()
+                
+                // Generate transfer stats
+                let stats = TransferStats(
+                    fileSize: totalBytes,
+                    fileName: "\(folder.name) (Folder)",
+                    startTime: startTime,
+                    endTime: endTime,
+                    transferType: .upload,
+                    speedSamples: [] // We don't have detailed speed samples for folder transfers
+                )
+                
+                await MainActor.run {
+                    // Set transfer stats and show summary
+                    smbViewModel.lastTransferStats = stats
                     
-                    await MainActor.run {
-                        self.totalTransferItems = 0
-                        self.processedTransferItems = 0
-                        onComplete()
+                    // Add a small delay to ensure UI updates properly
+                    Task {
+                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
+                        smbViewModel.showTransferSummary = true
                     }
+                }
+                
+                // Wait a moment to show completion before clearing
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                
+                await MainActor.run {
+                    self.activeTransfer = nil
+                    self.currentTransferItem = ""
+                    self.totalTransferItems = 0
+                    self.processedTransferItems = 0
+                    self.isFolderTransferInProgress = false
+                    onComplete()
+                }
+            } catch {
+                print("Folder upload error: \(error)")
+                await MainActor.run {
+                    self.activeTransfer = nil
+                    self.currentTransferItem = ""
+                    self.totalTransferItems = 0
+                    self.processedTransferItems = 0
+                    self.isFolderTransferInProgress = false
                 }
             }
         }
@@ -134,31 +186,433 @@ extension TransferManager {
         onComplete: @escaping () -> Void
     ) {
         Task {
+            // Check if a folder transfer is already in progress
+            let transferInProgress = await MainActor.run { self.isFolderTransferInProgress }
+            if transferInProgress {
+                print("Folder transfer already in progress, ignoring request")
+                return
+            }
+            
+            // Record start time for transfer stats
+            let startTime = Date()
+            var totalBytes: UInt64 = 0
+            
             await MainActor.run {
+                self.isFolderTransferInProgress = true
                 self.activeTransfer = .toLocal
                 self.totalTransferItems = 0
                 self.processedTransferItems = 0
+                self.currentTransferItem = folder.name
             }
             
-            await downloadFolderRecursively(
-                folderName: folder.name,
-                destURL: destination,
-                smbViewModel: smbViewModel
-            )
-            
-            await MainActor.run {
-                self.activeTransfer = nil
-                self.currentTransferItem = ""
+            do {
+                // Ensure destination directory exists
+                let fileManager = FileManager.default
+                if !fileManager.fileExists(atPath: destination.path) {
+                    try fileManager.createDirectory(at: destination, withIntermediateDirectories: true)
+                }
                 
-                Task {
-                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                // Save starting directory
+                let originalDir = smbViewModel.currentDirectory
+                
+                // Try to calculate total files (but don't throw if it fails)
+                do {
+                    let fileCount = await countRemoteFilesInFolder(
+                        folderName: folder.name,
+                        smbViewModel: smbViewModel
+                    )
+                    
+                    // Restore original directory
+                    try await smbViewModel.listFiles(originalDir)
                     
                     await MainActor.run {
-                        self.totalTransferItems = 0
-                        self.processedTransferItems = 0
-                        onComplete()
+                        print("Found \(fileCount) files in folder \(folder.name)")
+                        self.totalTransferItems = max(1, fileCount) // Ensure at least 1
+                    }
+                } catch {
+                    print("Error counting files (continuing anyway): \(error)")
+                    await MainActor.run {
+                        // Set a nominal number if counting fails
+                        self.totalTransferItems = 1
+                    }
+                    
+                    // Make sure we're back in original directory
+                    try? await smbViewModel.listFiles(originalDir)
+                }
+                
+                // Now download the folder
+                print("Starting folder download from \(smbViewModel.currentDirectory) for folder \(folder.name)")
+                
+                // Track file sizes as we go
+                totalBytes = await downloadFolderRecursivelyWithSizeTracking(
+                    folderName: folder.name,
+                    destURL: destination,
+                    smbViewModel: smbViewModel
+                )
+                
+                // Make sure we're back in original directory
+                try await smbViewModel.listFiles(originalDir)
+                
+                // Create and display transfer summary
+                let endTime = Date()
+                
+                // Generate transfer stats
+                let stats = TransferStats(
+                    fileSize: totalBytes,
+                    fileName: "\(folder.name) (Folder)",
+                    startTime: startTime,
+                    endTime: endTime,
+                    transferType: .download,
+                    speedSamples: [] // We don't have detailed speed samples for folder transfers
+                )
+                
+                await MainActor.run {
+                    // Set transfer stats and show summary
+                    smbViewModel.lastTransferStats = stats
+                    
+                    // Add a small delay to ensure UI updates properly
+                    Task {
+                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
+                        smbViewModel.showTransferSummary = true
                     }
                 }
+                
+                // Pause briefly to show completion
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                
+                // Reset UI state
+                await MainActor.run {
+                    self.activeTransfer = nil
+                    self.currentTransferItem = ""
+                    self.totalTransferItems = 0
+                    self.processedTransferItems = 0
+                    self.isFolderTransferInProgress = false
+                    onComplete()
+                }
+            } catch {
+                print("Folder download error: \(error)")
+                
+                // Reset UI state even on error
+                await MainActor.run {
+                    self.activeTransfer = nil
+                    self.currentTransferItem = ""
+                    self.totalTransferItems = 0
+                    self.processedTransferItems = 0
+                    self.isFolderTransferInProgress = false
+                }
+            }
+        }
+    }
+
+    // Modified version of downloadFolderRecursively that also returns the total bytes downloaded
+    private func downloadFolderRecursivelyWithSizeTracking(
+        folderName: String,
+        destURL: URL,
+        smbViewModel: FileTransferViewModel
+    ) async -> UInt64 {
+        // For first level, folderName might include path separators
+        // Get the starting state
+        let startingDir = smbViewModel.currentDirectory
+        
+        // Parse folderName in case it contains path separators
+        let components = folderName.components(separatedBy: "/")
+        let simpleFolderName = components.last ?? folderName
+        
+        var totalBytes: UInt64 = 0
+        
+        do {
+            // Create the local folder
+            try FileManager.default.createDirectory(at: destURL, withIntermediateDirectories: true, attributes: nil)
+            
+            // Figure out the target path
+            let targetPath: String
+            if components.count > 1 {
+                if startingDir.isEmpty {
+                    targetPath = folderName
+                } else {
+                    targetPath = "\(startingDir)/\(folderName)"
+                }
+            } else {
+                if startingDir.isEmpty {
+                    targetPath = folderName
+                } else {
+                    targetPath = "\(startingDir)/\(folderName)"
+                }
+            }
+            
+            print("Trying to navigate to: \(targetPath)")
+            
+            do {
+                // First try to navigate directly to the target path
+                try await smbViewModel.listFiles(targetPath)
+            } catch {
+                print("Failed to navigate directly to \(targetPath): \(error)")
+                
+                // If direct navigation fails, try navigating component by component
+                var currentPath = startingDir
+                for component in components {
+                    let nextPath = currentPath.isEmpty ? component : "\(currentPath)/\(component)"
+                    
+                    do {
+                        try await smbViewModel.listFiles(nextPath)
+                        currentPath = nextPath
+                    } catch {
+                        print("Failed to navigate to component \(component): \(error)")
+                        throw error
+                    }
+                }
+            }
+            
+            // At this point, we should be in the target directory
+            let files = smbViewModel.files
+            
+            // Skip the "." and ".." entries if they exist
+            let validFiles = files.filter { $0.name != "." && $0.name != ".." }
+            
+            // Process each file or subfolder
+            for file in validFiles {
+                // Update UI for current item
+                await MainActor.run {
+                    self.currentTransferItem = file.name
+                }
+                
+                if smbViewModel.isDirectory(file) {
+                    // Recursively download subfolders
+                    let subfolderURL = destURL.appendingPathComponent(file.name)
+                    
+                    // For subfolders, we're already in the correct parent directory
+                    let subfoldertotalBytes = await downloadFolderRecursivelyWithSizeTracking(
+                        folderName: file.name,
+                        destURL: subfolderURL,
+                        smbViewModel: smbViewModel
+                    )
+                    
+                    totalBytes += subfoldertotalBytes
+                    
+                    // After handling a subfolder, make sure we're back in the right directory
+                    try await smbViewModel.listFiles(smbViewModel.currentDirectory)
+                } else {
+                    // Download individual file
+                    let fileURL = destURL.appendingPathComponent(file.name)
+                    let data = try await smbViewModel.downloadFile(fileName: file.name, trackTransfer: false)
+                    try data.write(to: fileURL)
+                    
+                    // Add file size to total
+                    totalBytes += UInt64(data.count)
+                    
+                    // Update progress counter
+                    await MainActor.run {
+                        self.processedTransferItems += 1
+                    }
+                }
+            }
+            
+            // Return to where we started
+            try await smbViewModel.listFiles(startingDir)
+        } catch {
+            print("Error downloading folder '\(folderName)' to '\(destURL.path)': \(error)")
+            
+            // Try to get back to the starting directory
+            do {
+                try await smbViewModel.listFiles(startingDir)
+            } catch {
+                print("Failed to return to starting directory: \(error)")
+            }
+        }
+        
+        return totalBytes
+    }
+    
+    private func uploadFolderRecursivelyWithSizeTracking(
+        url: URL,
+        parentPath: String = "",
+        smbViewModel: FileTransferViewModel
+    ) async -> UInt64 {
+        // Get folder name from URL
+        let folderName = url.lastPathComponent
+        let fullSmbPath = parentPath.isEmpty ? folderName : "\(parentPath)/\(folderName)"
+        
+        var totalBytes: UInt64 = 0
+        
+        do {
+            // Create the folder on SMB server if needed
+            if parentPath.isEmpty {
+                try await smbViewModel.createDirectory(directoryName: folderName)
+            } else {
+                // Navigate to parent directory and create subfolder
+                let currentDir = smbViewModel.currentDirectory
+                try await smbViewModel.listFiles(parentPath)
+                try await smbViewModel.createDirectory(directoryName: folderName)
+                try await smbViewModel.listFiles(currentDir)
+            }
+            
+            // Get all items in the local folder
+            let fileManager = FileManager.default
+            guard let contents = try? fileManager.contentsOfDirectory(
+                at: url,
+                includingPropertiesForKeys: [.isDirectoryKey, .fileSizeKey]
+            ) else {
+                return 0
+            }
+            
+            // Process each item
+            for itemURL in contents {
+                let isDir = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+                
+                // Update UI only once per file/folder to avoid excessive updates
+                await MainActor.run {
+                    self.currentTransferItem = itemURL.lastPathComponent
+                }
+                
+                if isDir {
+                    // Recursively upload subdirectories
+                    let subdirBytes = await uploadFolderRecursivelyWithSizeTracking(
+                        url: itemURL,
+                        parentPath: fullSmbPath,
+                        smbViewModel: smbViewModel
+                    )
+                    
+                    totalBytes += subdirBytes
+                } else {
+                    // Navigate to correct directory
+                    let currentDir = smbViewModel.currentDirectory
+                    try await smbViewModel.listFiles(fullSmbPath)
+                    
+                    // Upload file
+                    let data = try Data(contentsOf: itemURL)
+                    try await smbViewModel.uploadFile(data: data, fileName: itemURL.lastPathComponent)
+                    
+                    // Add file size to total
+                    totalBytes += UInt64(data.count)
+                    
+                    // Navigate back
+                    try await smbViewModel.listFiles(currentDir)
+                    
+                    // Update progress (on main actor to prevent multiple updates)
+                    await MainActor.run {
+                        self.processedTransferItems += 1
+                    }
+                }
+            }
+        } catch {
+            print("Error uploading folder: \(error)")
+        }
+        
+        return totalBytes
+    }
+    
+    private func downloadFolderRecursively(
+        folderName: String,
+        destURL: URL,
+        smbViewModel: FileTransferViewModel
+    ) async {
+        // For first level, folderName might include path info from the drag operation
+        // We need to handle possible paths like "AFK/Test" correctly
+        
+        // Get the starting state
+        let startingDir = smbViewModel.currentDirectory
+        
+        // Parse folderName in case it contains path separators
+        let components = folderName.components(separatedBy: "/")
+        let simpleFolderName = components.last ?? folderName
+        
+        do {
+            // Create the local folder
+            try FileManager.default.createDirectory(at: destURL, withIntermediateDirectories: true, attributes: nil)
+            
+            // Figure out the target path based on whether folderName has path separators
+            let targetPath: String
+            if components.count > 1 {
+                // If folderName contains path separators, navigate to each component
+                if startingDir.isEmpty {
+                    targetPath = folderName
+                } else {
+                    targetPath = "\(startingDir)/\(folderName)"
+                }
+            } else {
+                // Simple folder name
+                if startingDir.isEmpty {
+                    targetPath = folderName
+                } else {
+                    targetPath = "\(startingDir)/\(folderName)"
+                }
+            }
+            
+            print("Trying to navigate to: \(targetPath)")
+            
+            do {
+                // First try to navigate directly to the target path
+                try await smbViewModel.listFiles(targetPath)
+            } catch {
+                print("Failed to navigate directly to \(targetPath): \(error)")
+                
+                // If direct navigation fails, try navigating component by component
+                var currentPath = startingDir
+                for component in components {
+                    let nextPath = currentPath.isEmpty ? component : "\(currentPath)/\(component)"
+                    
+                    do {
+                        try await smbViewModel.listFiles(nextPath)
+                        currentPath = nextPath
+                    } catch {
+                        print("Failed to navigate to component \(component): \(error)")
+                        throw error
+                    }
+                }
+            }
+            
+            // At this point, we should be in the target directory
+            // List files in the folder
+            let files = smbViewModel.files
+            
+            // Skip the "." and ".." entries if they exist
+            let validFiles = files.filter { $0.name != "." && $0.name != ".." }
+            
+            // Process each file or subfolder
+            for file in validFiles {
+                // Update UI for current item
+                await MainActor.run {
+                    self.currentTransferItem = file.name
+                }
+                
+                if smbViewModel.isDirectory(file) {
+                    // Recursively download subfolders
+                    let subfolderURL = destURL.appendingPathComponent(file.name)
+                    
+                    // For subfolders, we're already in the correct parent directory
+                    // so we can just pass the simple folder name
+                    await downloadFolderRecursively(
+                        folderName: file.name,
+                        destURL: subfolderURL,
+                        smbViewModel: smbViewModel
+                    )
+                    
+                    // After handling a subfolder, make sure we're back in the right directory
+                    // If our folder had a path like "AFK/Test", we need to return to that
+                    try await smbViewModel.listFiles(smbViewModel.currentDirectory)
+                } else {
+                    // Download individual file
+                    let fileURL = destURL.appendingPathComponent(file.name)
+                    let data = try await smbViewModel.downloadFile(fileName: file.name, trackTransfer: false)
+                    try data.write(to: fileURL)
+                    
+                    // Update progress counter
+                    await MainActor.run {
+                        self.processedTransferItems += 1
+                    }
+                }
+            }
+            
+            // Return to where we started
+            try await smbViewModel.listFiles(startingDir)
+        } catch {
+            print("Error downloading folder '\(folderName)' to '\(destURL.path)': \(error)")
+            
+            // Try to get back to the starting directory
+            do {
+                try await smbViewModel.listFiles(startingDir)
+            } catch {
+                print("Failed to return to starting directory: \(error)")
             }
         }
     }
@@ -171,11 +625,10 @@ extension TransferManager {
         smbViewModel: FileTransferViewModel,
         localViewModel: LocalFileViewModel
     ) {
-        
         provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) { secureData, error in
             guard error == nil else { return }
             
-            DispatchQueue.main.async {
+            Task {
                 var jsonString: String? = nil
                 
                 if let string = secureData as? String {
@@ -187,40 +640,94 @@ extension TransferManager {
                     jsonString = decodedString
                 }
                 
-                // Try to decode as JSON first
+                // Check if this is a valid SMB file drop
                 if let jsonString = jsonString {
-                    if let jsonData = jsonString.data(using: .utf8),
-                       let fileInfo = try? JSONSerialization.jsonObject(with: jsonData) as? [String: String],
-                       let fileName = fileInfo["name"],
-                       let isDirectoryStr = fileInfo["isDirectory"],
-                       let type = fileInfo["type"], type == "smbFile" {
-                        
-                        // We got a valid SMB file drop
-                        let isDirectory = isDirectoryStr == "true"
-                        
-                        if let file = smbViewModel.getFileByName(fileName) {
-                            let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(fileName)
+                    print("Received drag data: \(jsonString)")
+                    
+                    do {
+                        // Try JSON format first
+                        if let jsonData = jsonString.data(using: .utf8),
+                           let fileInfo = try? JSONSerialization.jsonObject(with: jsonData) as? [String: String] {
                             
-                            if isDirectory {
-                                self.startFolderDownload(folder: file, destination: localURL, smbViewModel: smbViewModel) {
-                                    localViewModel.refreshFiles()
+                            // Extract file info
+                            let fileName = fileInfo["name"] ?? fileInfo["fileName"] ?? ""
+                            let isDirectoryStr = fileInfo["isDirectory"] ?? "false"
+                            let type = fileInfo["type"] ?? ""
+                            
+                            if !fileName.isEmpty && type == "smbFile" {
+                                let isDirectory = isDirectoryStr == "true"
+                                
+                                await MainActor.run {
+                                    // Check if a transfer is already in progress
+                                    if self.isFolderTransferInProgress || self.activeTransfer != nil {
+                                        print("Transfer already in progress, ignoring drop")
+                                        return
+                                    }
+                                }
+                                
+                                // Find the file in the current directory
+                                if let file = smbViewModel.getFileByName(fileName) {
+                                    // Create destination path
+                                    let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(fileName)
+                                    
+                                    if isDirectory {
+                                        // Start folder download
+                                        print("Starting folder download for: \(fileName) to \(localURL.path)")
+                                        self.startFolderDownload(
+                                            folder: file,
+                                            destination: localURL,
+                                            smbViewModel: smbViewModel
+                                        ) {
+                                            localViewModel.refreshFiles()
+                                        }
+                                    } else {
+                                        // Start file download
+                                        print("Starting file download for: \(fileName)")
+                                        self.startSingleFileDownload(
+                                            file: file,
+                                            destinationURL: localURL,
+                                            smbViewModel: smbViewModel
+                                        ) {
+                                            localViewModel.refreshFiles()
+                                        }
+                                    }
+                                } else {
+                                    print("File not found in current directory: \(fileName)")
                                 }
                             } else {
-                                self.startSingleFileDownload(file: file, destinationURL: localURL, smbViewModel: smbViewModel) {
-                                    localViewModel.refreshFiles()
+                                print("Invalid JSON format or not an SMB file")
+                            }
+                        } else if let file = smbViewModel.getFileByName(jsonString.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                            // Fallback for simple string drop
+                            
+                            await MainActor.run {
+                                // Check if a transfer is already in progress
+                                if self.isFolderTransferInProgress || self.activeTransfer != nil {
+                                    print("Transfer already in progress, ignoring drop")
+                                    return
                                 }
                             }
-                        }
-                    } else {
-                        // Try simple string if JSON parsing failed
-                        if let fileName = secureData as? String,
-                           let file = smbViewModel.getFileByName(fileName) {
-                            let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(fileName)
-                            self.startSingleFileDownload(file: file, destinationURL: localURL, smbViewModel: smbViewModel) {
+                            
+                            // Create destination path
+                            let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(jsonString.trimmingCharacters(in: .whitespacesAndNewlines))
+                            
+                            // Start file download
+                            print("Starting file download for: \(jsonString.trimmingCharacters(in: .whitespacesAndNewlines)) (simple string format)")
+                            self.startSingleFileDownload(
+                                file: file,
+                                destinationURL: localURL,
+                                smbViewModel: smbViewModel
+                            ) {
                                 localViewModel.refreshFiles()
                             }
+                        } else {
+                            print("Could not parse drop data: \(jsonString)")
                         }
+                    } catch {
+                        print("Error processing dropped file: \(error)")
                     }
+                } else {
+                    print("No valid string data in drop")
                 }
             }
         }
@@ -298,157 +805,135 @@ extension TransferManager {
         let fullSmbPath = parentPath.isEmpty ? folderName : "\(parentPath)/\(folderName)"
         
         do {
-            // Create the folder on SMB server if not at root
-            try await smbViewModel.createDirectory(directoryName: folderName)
+            // Create the folder on SMB server if needed
+            if parentPath.isEmpty {
+                try await smbViewModel.createDirectory(directoryName: folderName)
+            } else {
+                // Navigate to parent directory and create subfolder
+                let currentDir = smbViewModel.currentDirectory
+                try await smbViewModel.listFiles(parentPath)
+                try await smbViewModel.createDirectory(directoryName: folderName)
+                try await smbViewModel.listFiles(currentDir)
+            }
             
             // Get all items in the local folder
             let fileManager = FileManager.default
-            guard let contents = try? fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: [.isDirectoryKey]) else {
+            guard let contents = try? fileManager.contentsOfDirectory(
+                at: url,
+                includingPropertiesForKeys: [.isDirectoryKey]
+            ) else {
                 return
             }
             
-            // Count total items for progress tracking
-            let totalItems = contents.count
-            
-            DispatchQueue.main.async {
-                self.totalTransferItems += totalItems
-            }
-            
-            // Upload each item
-            for (index, itemURL) in contents.enumerated() {
+            // Process each item
+            for itemURL in contents {
                 let isDir = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
                 
-                // Update progress info
+                // Update UI only once per file/folder to avoid excessive updates
                 await MainActor.run {
                     self.currentTransferItem = itemURL.lastPathComponent
                 }
                 
                 if isDir {
-                    // For subdirectories, we need to:
-                    // 1. Navigate to the target directory on SMB
-                    let currentDir = smbViewModel.currentDirectory
-                    
-                    try await smbViewModel.navigateToDirectory(folderName)
-                    
-                    // 2. Recursively upload the subdirectory contents
+                    // Recursively upload subdirectories
                     await uploadFolderRecursively(
                         url: itemURL,
                         parentPath: fullSmbPath,
                         smbViewModel: smbViewModel
                     )
-                    
-                    // 3. Navigate back to original directory
-                    try await smbViewModel.listFiles(currentDir)
                 } else {
-                    // Navigate to correct directory first
+                    // Navigate to correct directory
                     let currentDir = smbViewModel.currentDirectory
-                    try await smbViewModel.navigateToDirectory(folderName)
+                    try await smbViewModel.listFiles(fullSmbPath)
                     
                     // Upload file
-                    try await smbViewModel.uploadLocalFile(url: itemURL)
+                    let data = try Data(contentsOf: itemURL)
+                    try await smbViewModel.uploadFile(data: data, fileName: itemURL.lastPathComponent)
                     
                     // Navigate back
                     try await smbViewModel.listFiles(currentDir)
-                }
-                
-                await MainActor.run {
-                    self.processedTransferItems += 1
+                    
+                    // Update progress (on main actor to prevent multiple updates)
+                    await MainActor.run {
+                        self.processedTransferItems += 1
+                    }
                 }
             }
-            
         } catch {
             print("Error uploading folder: \(error)")
         }
     }
     
-    private func downloadFolderRecursively(
-        folderName: String,
-        destURL: URL,
-        smbViewModel: FileTransferViewModel
-    ) async {
-        // Track our path to avoid loops
-        let startingDir = smbViewModel.currentDirectory
-        let targetDir = startingDir.isEmpty ? folderName : "\(startingDir)/\(folderName)"
+    private func countFilesInFolder(url: URL) async -> Int {
+        let fileManager = FileManager.default
+        guard let contents = try? fileManager.contentsOfDirectory(
+            at: url,
+            includingPropertiesForKeys: [.isDirectoryKey]
+        ) else {
+            return 0
+        }
         
+        var count = 0
+        
+        for itemURL in contents {
+            let isDir = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
+            
+            if isDir {
+                count += await countFilesInFolder(url: itemURL)
+            } else {
+                count += 1
+            }
+        }
+        
+        return count
+    }
+    
+    // Count all files in a remote folder recursively
+    private func countRemoteFilesInFolder(
+        folderName: String,
+        parentPath: String = "",
+        smbViewModel: FileTransferViewModel
+    ) async -> Int {
         do {
-            // Create the local folder
-            try FileManager.default.createDirectory(at: destURL, withIntermediateDirectories: true)
-            
-            // Navigate to the target directory directly instead of navigating relatively
-            try await smbViewModel.listFiles(targetDir)
-            
-            // List files in the folder
-            let files = smbViewModel.files
-            
-            // Skip the "." and ".." entries if they exist
-            let validFiles = files.filter { $0.name != "." && $0.name != ".." }
-            
-            await MainActor.run {
-                self.totalTransferItems += validFiles.count
+            // Determine full path
+            let fullPath: String
+            if parentPath.isEmpty {
+                fullPath = folderName
+            } else {
+                fullPath = "\(parentPath)/\(folderName)"
             }
             
-            // Download each file or subfolder
-            for file in validFiles {
-                // Update progress
-                await MainActor.run {
-                    self.currentTransferItem = file.name
-                }
-                
+            // Save current directory
+            let currentDir = smbViewModel.currentDirectory
+            
+            // Navigate to folder
+            try await smbViewModel.listFiles(fullPath)
+            
+            // Get all files excluding . and ..
+            let files = smbViewModel.files.filter { $0.name != "." && $0.name != ".." }
+            
+            var count = 0
+            
+            // Count files and recursive folders
+            for file in files {
                 if smbViewModel.isDirectory(file) {
-                    // Recursively download subfolders
-                    let subfolderURL = destURL.appendingPathComponent(file.name)
-                    let subfolderPath = targetDir.isEmpty ? file.name : "\(targetDir)/\(file.name)"
-                    
-                    // Use the full path instead of relative navigation
-                    await downloadFolderRecursively(
-                        folderName: subfolderPath,
-                        destURL: subfolderURL,
+                    count += await countRemoteFilesInFolder(
+                        folderName: file.name,
+                        parentPath: fullPath,
                         smbViewModel: smbViewModel
                     )
-                    
-                    // Navigate back to the current folder after each subfolder
-                    try await smbViewModel.listFiles(targetDir)
                 } else {
-                    // Use the full path to download the file
-                    let fullPath = targetDir.isEmpty ? file.name : "\(targetDir)/\(file.name)"
-                    
-                    // Download individual file
-                    let fileURL = destURL.appendingPathComponent(file.name)
-                    
-                    // Save current directory
-                    let tempDir = smbViewModel.currentDirectory
-                    
-                    // Navigate to the file's parent directory if needed
-                    if smbViewModel.currentDirectory != targetDir {
-                        try await smbViewModel.listFiles(targetDir)
-                    }
-                    
-                    let data = try await smbViewModel.downloadFile(fileName: file.name)
-                    try data.write(to: fileURL)
-                    
-                    // Ensure we're back in the right directory
-                    if smbViewModel.currentDirectory != tempDir {
-                        try await smbViewModel.listFiles(tempDir)
-                    }
-                }
-                
-                await MainActor.run {
-                    self.processedTransferItems += 1
+                    count += 1
                 }
             }
             
-            // Always navigate back to starting directory
-            try await smbViewModel.listFiles(startingDir)
+            // Restore original directory
+            try await smbViewModel.listFiles(currentDir)
             
+            return count
         } catch {
-            print("Error downloading folder '\(folderName)' to '\(destURL.path)': \(error)")
-            
-            // Even if we hit an error, try to get back to the starting directory
-            do {
-                try await smbViewModel.listFiles(startingDir)
-            } catch {
-                print("Failed to return to starting directory: \(error)")
-            }
+            print("Error counting files in folder: \(error)")
+            return 0
         }
     }
 }
