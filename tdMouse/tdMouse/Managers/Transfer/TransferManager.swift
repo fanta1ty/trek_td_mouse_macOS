@@ -70,75 +70,6 @@ class TransferManager: ObservableObject {
     }
 }
 
-// MARK: - Single File Transfers
-extension TransferManager {
-    func startSingleFileDownload(
-        file: File,
-        destinationURL: URL,
-        smbViewModel: FileTransferViewModel,
-        onComplete: @escaping () -> Void
-    ) {
-        Task {
-            await MainActor.run {
-                self.activeTransfer = .toLocal
-                self.currentTransferItem = file.name
-            }
-            
-            do {
-                // Download file with tracking enabled
-                let data = try await smbViewModel.downloadFile(fileName: file.name, trackTransfer: true)
-                try data.write(to: destinationURL)
-                
-                // Wait a moment to show completion before clearing
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                
-                await MainActor.run {
-                    self.activeTransfer = nil
-                    self.currentTransferItem = ""
-                    onComplete()
-                }
-            } catch {
-                print("Download failed: \(error)")
-                await MainActor.run {
-                    self.activeTransfer = nil
-                    self.currentTransferItem = ""
-                }
-            }
-        }
-    }
-    
-    func startSingleFileUpload(
-        file: LocalFile,
-        smbViewModel: FileTransferViewModel,
-        onComplete: @escaping () -> Void
-    ) {
-        Task {
-            await MainActor.run {
-                self.activeTransfer = .toRemote
-                self.currentTransferItem = file.name
-            }
-            
-            do {
-                try await smbViewModel.uploadLocalFile(url: file.url)
-                
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                
-                await MainActor.run {
-                    self.activeTransfer = nil
-                    self.currentTransferItem = ""
-                    onComplete()
-                }
-            } catch {
-                print("Upload error: \(error)")
-                await MainActor.run {
-                    self.activeTransfer = nil
-                    self.currentTransferItem = ""
-                }
-            }
-        }
-    }
-}
-
 // MARK: - Folder Transfers
 extension TransferManager {
     func startFolderUpload(
@@ -734,7 +665,7 @@ extension TransferManager {
                                         print("Starting file download for: \(fileName)")
                                         self.startSingleFileDownload(
                                             file: file,
-                                            destinationURL: localURL,
+                                            destination: localURL,
                                             smbViewModel: smbViewModel
                                         ) {
                                             localViewModel.refreshFiles()
@@ -764,7 +695,7 @@ extension TransferManager {
                             print("Starting file download for: \(jsonString.trimmingCharacters(in: .whitespacesAndNewlines)) (simple string format)")
                             self.startSingleFileDownload(
                                 file: file,
-                                destinationURL: localURL,
+                                destination: localURL,
                                 smbViewModel: smbViewModel
                             ) {
                                 localViewModel.refreshFiles()
