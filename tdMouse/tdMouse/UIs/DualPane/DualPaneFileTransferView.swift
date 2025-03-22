@@ -146,7 +146,7 @@ struct DualPaneFileTransferView: View {
         let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(file.name)
         transferManager.startSingleFileDownload(
             file: file,
-            destinationURL: localURL,
+            destination: localURL,
             smbViewModel: smbViewModel
         ) {
             // Refresh on completion
