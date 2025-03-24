@@ -13,94 +13,135 @@ extension TransferManager {
         folder: LocalFile,
         smbViewModel: FileTransferViewModel,
         onComplete: @escaping () -> Void
-    ) {
-        Task {
-            // Check if a folder transfer is already in progress
-            let transferInProgress = await MainActor.run { self.isFolderTransferInProgress }
-            if transferInProgress {
-                print("Folder transfer already in progress, ignoring request")
-                await MainActor.run {
-                    self.errorMessage = TransferError.transferInProgress.localizedDescription
-                }
-                return
+    ) async {
+        // Check if a folder transfer is already in progress
+        let transferInProgress = await MainActor.run { self.isFolderTransferInProgress }
+        if transferInProgress {
+            print("Folder transfer already in progress, ignoring request")
+            await MainActor.run {
+                self.errorMessage = TransferError.transferInProgress.localizedDescription
             }
-            
-            // Record start time for transfer stats
-            let startTime = Date()
-            var totalBytes: UInt64 = 0
+            return
+        }
+        
+        // Record start time for transfer stats
+        let startTime = Date()
+        var totalBytes: UInt64 = 0
+        
+        await MainActor.run {
+            self.isFolderTransferInProgress = true
+            self.activeTransfer = .toRemote
+            self.totalTransferItems = 0
+            self.processedTransferItems = 0
+            self.currentTransferItem = folder.name
+            self.errorMessage = ""
+            self.completedFiles = []
+        }
+        
+        do {
+            // First, count all files in the folder to set accurate totals
+            let fileCount = await countLocalFilesInFolder(url: folder.url)
             
             await MainActor.run {
-                self.isFolderTransferInProgress = true
-                self.activeTransfer = .toRemote
-                self.totalTransferItems = 0
-                self.processedTransferItems = 0
-                self.currentTransferItem = folder.name
-                self.errorMessage = ""
-                self.completedFiles = []
+                self.totalTransferItems = fileCount > 0 ? fileCount : 1
             }
             
-            do {
-                // First, count all files in the folder to set accurate totals
-                let fileCount = await countFilesInFolder(url: folder.url)
-                
-                await MainActor.run {
-                    self.totalTransferItems = fileCount > 0 ? fileCount : 1
-                }
-                
-                // Now upload the folder and track total bytes
-                totalBytes = try await uploadFolderRecursively(
-                    url: folder.url,
-                    smbViewModel: smbViewModel
-                )
-                
-                // Create and display transfer summary
-                let endTime = Date()
-                
-                // Generate transfer stats
-                let stats = TransferStats(
-                    fileSize: totalBytes,
-                    fileName: "\(folder.name) (Folder)",
-                    startTime: startTime,
-                    endTime: endTime,
-                    transferType: .upload,
-                    speedSamples: [] // We don't have detailed speed samples for folder transfers
-                )
-                
-                await MainActor.run {
-                    // Set transfer stats and show summary
-                    smbViewModel.lastTransferStats = stats
+            // Create a transfer task for tracking
+            let task = TransferTask(
+                direction: .toRemote,
+                remotePath: smbViewModel.currentDirectory.isEmpty ? folder.name : "\(smbViewModel.currentDirectory)/\(folder.name)",
+                localPath: folder.url
+            )
+            
+            activeTasks[task.id] = task
+            
+            // Upload the folder with size tracking
+            task.start {
+                do {
+                    totalBytes = try await self.uploadFolderRecursively(
+                        url: folder.url,
+                        smbViewModel: smbViewModel
+                    )
                     
-                    // Add a small delay to ensure UI updates properly
-                    Task {
-                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
-                        smbViewModel.showTransferSummary = true
+                    // Create and display transfer summary
+                    let endTime = Date()
+                    
+                    // Generate transfer stats
+                    let stats = TransferStats(
+                        fileSize: totalBytes,
+                        fileName: "\(folder.name) (Folder)",
+                        startTime: startTime,
+                        endTime: endTime,
+                        transferType: .upload,
+                        speedSamples: [] // We don't have detailed speed samples for folder transfers
+                    )
+                    
+                    await MainActor.run {
+                        // Set transfer stats and show summary
+                        smbViewModel.lastTransferStats = stats
+                        
+                        // Add a small delay to ensure UI updates properly
+                        Task {
+                            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
+                            smbViewModel.showTransferSummary = true
+                        }
                     }
+                    
+                    // Wait a moment to show completion before clearing
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                } catch {
+                    throw error
                 }
+            }
+            
+            // Wait for the task to finish
+            while !task.isCompleted {
+                try await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
                 
-                // Wait a moment to show completion before clearing
-                try? await Task.sleep(nanoseconds: 1_000_000_000)
-                
-                await MainActor.run {
-                    self.activeTransfer = nil
-                    self.currentTransferItem = ""
-                    self.totalTransferItems = 0
-                    self.processedTransferItems = 0
-                    self.isFolderTransferInProgress = false
-                    onComplete()
+                if Task.isCancelled {
+                    task.cancel()
+                    await MainActor.run {
+                        self.errorMessage = "Transfer was cancelled"
+                    }
+                    break
                 }
-            } catch {
-                print("Folder upload error: \(error)")
-                await MainActor.run {
-                    self.activeTransfer = nil
-                    self.currentTransferItem = ""
-                    self.errorMessage = error is TransferError ? error.localizedDescription : "Upload failed: \(error.localizedDescription)"
-                    self.isFolderTransferInProgress = false
+            }
+            
+            // Clean up the task
+            activeTasks.removeValue(forKey: task.id)
+            
+            // Check for errors
+            if let error = task.error {
+                throw error
+            }
+            
+            await MainActor.run {
+                self.activeTransfer = nil
+                self.currentTransferItem = ""
+                self.totalTransferItems = 0
+                self.processedTransferItems = 0
+                self.isFolderTransferInProgress = false
+                onComplete()
+            }
+        } catch {
+            print("Folder upload error: \(error)")
+            await MainActor.run {
+                self.activeTransfer = nil
+                self.currentTransferItem = ""
+                self.totalTransferItems = 0
+                self.processedTransferItems = 0
+                self.isFolderTransferInProgress = false
+                
+                if let transferError = error as? TransferError {
+                    self.errorMessage = transferError.localizedDescription
+                } else {
+                    self.errorMessage = "Folder upload failed: \(error.localizedDescription)"
                 }
             }
         }
     }
     
-    func uploadFolderRecursively(
+    private func uploadFolderRecursively(
         url: URL,
         parentPath: String = "",
         smbViewModel: FileTransferViewModel
@@ -110,14 +151,14 @@ extension TransferManager {
         let fullSmbPath = parentPath.isEmpty ? folderName : "\(parentPath)/\(folderName)"
         
         var totalBytes: UInt64 = 0
-        var localCompletedFiles = [String]()
         
         do {
             // Create the folder on SMB server if needed
             if parentPath.isEmpty {
+                // At root level, create the main folder
                 try await smbViewModel.createDirectory(directoryName: folderName)
             } else {
-                // Navigate to parent directory and create subfolder
+                // For subfolders, navigate to parent directory and create the subfolder
                 let currentDir = smbViewModel.currentDirectory
                 try await smbViewModel.listFiles(parentPath)
                 try await smbViewModel.createDirectory(directoryName: folderName)
@@ -133,15 +174,19 @@ extension TransferManager {
                 return 0
             }
             
-            // Process each item
-            for itemURL in contents where (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true {
-                let isDir = (try? itemURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false
-                
-                // Update UI only once per file/folder to avoid excessive updates
+            // Process all subdirectories first
+            for itemURL in contents where itemURL.isDirectory {
+                // Update UI
                 await MainActor.run {
                     self.currentTransferItem = itemURL.lastPathComponent
                 }
                 
+                // Skip if already completed
+                if completedFiles.contains(itemURL.lastPathComponent) {
+                    continue
+                }
+                
+                // Recursively upload subdirectories
                 let subdirBytes = try await uploadFolderRecursively(
                     url: itemURL,
                     parentPath: fullSmbPath,
@@ -149,68 +194,65 @@ extension TransferManager {
                 )
                 
                 totalBytes += subdirBytes
-                localCompletedFiles.append(itemURL.lastPathComponent)
                 
-                // Periodically create checkpoint
-                createCheckpoint(
-                    remotePath: fullSmbPath,
-                    localPath: url,
-                    completedItems: localCompletedFiles,
-                    totalItems: contents.count,
-                    bytesTransferred: totalBytes
-                )
-            }
-            // Collect all files (not directories)
-            let files = contents.filter {
-                ((try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) ?? false) == false
+                await MainActor.run {
+                    self.completedFiles.append(itemURL.lastPathComponent)
+                }
+                
+                // Check for cancellation
+                try Task.checkCancellation()
             }
             
-            // Process regular files (we can potentially use task groups here for up to 5 concurrent uploads)
-            var processedFileCount = 0
+            // Collect all files (not directories)
+            let files = contents.filter { !$0.isDirectory }
             
             // Navigate to target directory once for all files
             let currentDir = smbViewModel.currentDirectory
             try await smbViewModel.listFiles(fullSmbPath)
             
             for itemURL in files {
+                // Skip if already completed
+                if completedFiles.contains(itemURL.lastPathComponent) {
+                    continue
+                }
+                
                 // Update UI only once per file to avoid excessive updates
                 await MainActor.run {
                     self.currentTransferItem = itemURL.lastPathComponent
                 }
                 
-                do {
-                    // Upload file
-                    let data = try Data(contentsOf: itemURL)
-                    try await smbViewModel.uploadFile(data: data, fileName: itemURL.lastPathComponent)
-                    
-                    // Track progress
-                    totalBytes += UInt64(data.count)
-                    localCompletedFiles.append(itemURL.lastPathComponent)
-                    
-                    // Update progress (batch updates to avoid UI thrashing)
-                    processedFileCount += 1
-                    await MainActor.run {
-                        self.processedTransferItems += 1
-                    }
-                    
-                    // Create checkpoint every 5 files
-                    if processedFileCount % 5 == 0 || processedFileCount == files.count {
-                        createCheckpoint(
-                            remotePath: fullSmbPath,
-                            localPath: url,
-                            completedItems: localCompletedFiles,
-                            totalItems: contents.count,
-                            bytesTransferred: totalBytes
-                        )
-                    }
-                } catch {
-                    print("Error uploading file \(itemURL.lastPathComponent): \(error)")
-                    // Continue with the next file instead of failing the entire operation
+                // Upload file
+                let data = try Data(contentsOf: itemURL)
+                try await smbViewModel.uploadFile(data: data, fileName: itemURL.lastPathComponent)
+                
+                // Add file size to total
+                totalBytes += UInt64(data.count)
+                
+                // Track completed file
+                await MainActor.run {
+                    self.completedFiles.append(itemURL.lastPathComponent)
+                    self.processedTransferItems += 1
                 }
+                
+                // Update checkpoint periodically
+                if self.processedTransferItems % 5 == 0 || self.processedTransferItems == self.totalTransferItems {
+                    self.createCheckpoint(
+                        remotePath: fullSmbPath,
+                        localPath: url,
+                        completedItems: self.completedFiles,
+                        totalItems: self.totalTransferItems,
+                        bytesTransferred: totalBytes,
+                        direction: .toRemote
+                    )
+                }
+                
+                // Check for cancellation
+                try Task.checkCancellation()
             }
             
             // Navigate back to original directory
             try await smbViewModel.listFiles(currentDir)
+            
         } catch {
             print("Error uploading folder: \(error)")
             throw TransferError.folderUploadFailed(folderName: folderName, underlyingError: error)

@@ -130,7 +130,9 @@ struct DualPaneFileTransferView: View {
                 try await smbViewModel.navigateToDirectory(file.name)
             }
         } else {
-            downloadFile(file)
+            Task {
+                await downloadFile(file)
+            }
         }
     }
     
@@ -138,15 +140,17 @@ struct DualPaneFileTransferView: View {
         if file.isDirectory {
             localViewModel.navigateToDirectory(file.name)
         } else {
-            uploadFile(file)
+            Task {
+                await uploadFile(file)
+            }
         }
     }
     
-    private func downloadFile(_ file: File) {
+    private func downloadFile(_ file: File) async {
         let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(file.name)
-        transferManager.startSingleFileDownload(
+        await transferManager.startSingleFileDownload(
             file: file,
-            destination: localURL,
+            destinationURL: localURL,
             smbViewModel: smbViewModel
         ) {
             // Refresh on completion
@@ -154,23 +158,25 @@ struct DualPaneFileTransferView: View {
         }
     }
     
-    private func uploadFile(_ file: LocalFile) {
-        transferManager.startSingleFileUpload(
+    private func uploadFile(_ file: LocalFile) async {
+        await transferManager.startSingleFileUpload(
             file: file,
             smbViewModel: smbViewModel,
             onComplete: {}
         )
     }
     
-    private func downloadFolder(_ file: File) {
+    private func downloadFolder(_ file: File) async {
         let destURL = localViewModel.currentDirectoryURL.appendingPathComponent(file.name)
-        transferManager.startFolderDownload(folder: file, destination: destURL, smbViewModel: smbViewModel) {
+        await transferManager.startFolderDownload(folder: file, destination: destURL, smbViewModel: smbViewModel) {
             localViewModel.refreshFiles()
         }
     }
     
     private func uploadFolder(_ file: LocalFile) {
-        transferManager.startFolderUpload(folder: file, smbViewModel: smbViewModel, onComplete: {})
+        Task {
+            await transferManager.startFolderUpload(folder: file, smbViewModel: smbViewModel, onComplete: {})
+        }
     }
     
     private func handleSmbFilesDropOnLocal(_ provider: NSItemProvider) {
@@ -188,11 +194,11 @@ struct DualPaneFileTransferView: View {
         )
     }
     
-    private func handleSmbFilesDrop(_ files: [File]) {
+    private func handleSmbFilesDrop(_ files: [File]) async {
         // Handle dropping SMB files onto the local pane
         for file in files {
             if !smbViewModel.isDirectory(file) {
-                downloadFile(file)
+                await downloadFile(file)
             }
         }
     }
@@ -235,7 +241,10 @@ struct DualPaneFileTransferView: View {
             queue: .main
         ) { notification in
             if let file = notification.object as? File {
-                downloadFile(file)
+                Task {
+                    await downloadFile(file)
+                }
+                
             }
         }
         
@@ -246,7 +255,9 @@ struct DualPaneFileTransferView: View {
             queue: .main
         ) { notification in
             if let folder = notification.object as? File {
-                downloadFolder(folder)
+                Task {
+                    await downloadFolder(folder)
+                }
             }
         }
         
@@ -256,7 +267,10 @@ struct DualPaneFileTransferView: View {
             queue: .main
         ) { notification in
             if let file = notification.object as? LocalFile {
-                uploadFile(file)
+                Task {
+                    await uploadFile(file)
+                }
+                
             }
         }
         
@@ -267,7 +281,9 @@ struct DualPaneFileTransferView: View {
         ) { notification in
             if let fileName = notification.object as? String,
                let file = smbViewModel.getFileByName(fileName) {
-                downloadFile(file)
+                Task {
+                    await downloadFile(file)
+                }
             }
         }
         
@@ -278,7 +294,9 @@ struct DualPaneFileTransferView: View {
             queue: .main
         ) { notification in
             if let folder = notification.object as? LocalFile {
-                uploadFolder(folder)
+                Task {
+                    await uploadFolder(folder)
+                }
             }
         }
     }

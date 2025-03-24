@@ -47,16 +47,13 @@ extension TransferManager {
                             if !fileName.isEmpty && type == "smbFile" {
                                 let isDirectory = isDirectoryStr == "true"
                                 
-                                let transferInProgress = await MainActor.run {
-                                    self.isFolderTransferInProgress || self.activeTransfer != nil
-                                }
-                                
-                                if transferInProgress {
-                                    print("Transfer already in progress, ignoring drop")
-                                    await MainActor.run {
+                                await MainActor.run {
+                                    // Check if a transfer is already in progress
+                                    if self.isTransferInProgress {
+                                        print("Transfer already in progress, ignoring drop")
                                         self.errorMessage = TransferError.transferInProgress.localizedDescription
+                                        return
                                     }
-                                    return
                                 }
                                 
                                 // Find the file in the current directory
@@ -67,7 +64,7 @@ extension TransferManager {
                                     if isDirectory {
                                         // Start folder download
                                         print("Starting folder download for: \(fileName) to \(localURL.path)")
-                                        self.startFolderDownload(
+                                        await self.startFolderDownload(
                                             folder: file,
                                             destination: localURL,
                                             smbViewModel: smbViewModel
@@ -77,9 +74,9 @@ extension TransferManager {
                                     } else {
                                         // Start file download
                                         print("Starting file download for: \(fileName)")
-                                        self.startSingleFileDownload(
+                                        await self.startSingleFileDownload(
                                             file: file,
-                                            destination: localURL,
+                                            destinationURL: localURL,
                                             smbViewModel: smbViewModel
                                         ) {
                                             localViewModel.refreshFiles()
@@ -88,28 +85,23 @@ extension TransferManager {
                                 } else {
                                     print("File not found in current directory: \(fileName)")
                                     await MainActor.run {
-                                        self.errorMessage = "File not found: \(fileName)"
+                                        self.errorMessage = TransferError.fileNotFound(path: fileName).localizedDescription
                                     }
                                 }
                             } else {
                                 print("Invalid JSON format or not an SMB file")
-                                await MainActor.run {
-                                    self.errorMessage = "Invalid file format"
-                                }
                             }
                         } else if let file = smbViewModel.getFileByName(jsonString.trimmingCharacters(in: .whitespacesAndNewlines)) {
                             let fileName = jsonString.trimmingCharacters(in: .whitespacesAndNewlines)
                             // Fallback for simple string drop
-                            let transferInProgress = await MainActor.run {
-                                self.isFolderTransferInProgress || self.activeTransfer != nil
-                            }
                             
-                            if transferInProgress {
-                                print("Transfer already in progress, ignoring drop")
-                                await MainActor.run {
+                            await MainActor.run {
+                                // Check if a transfer is already in progress
+                                if self.isTransferInProgress {
+                                    print("Transfer already in progress, ignoring drop")
                                     self.errorMessage = TransferError.transferInProgress.localizedDescription
+                                    return
                                 }
-                                return
                             }
                             
                             // Create destination path
@@ -117,9 +109,9 @@ extension TransferManager {
                             
                             // Start file download
                             print("Starting file download for: \(fileName) (simple string format)")
-                            self.startSingleFileDownload(
+                            await self.startSingleFileDownload(
                                 file: file,
-                                destination: localURL,
+                                destinationURL: localURL,
                                 smbViewModel: smbViewModel
                             ) {
                                 localViewModel.refreshFiles()
@@ -127,26 +119,33 @@ extension TransferManager {
                         } else {
                             print("Could not parse drop data: \(jsonString)")
                             await MainActor.run {
-                                self.errorMessage = "Invalid drop data"
+                                self.errorMessage = "Invalid file data in drag operation"
                             }
                         }
                     } catch {
                         print("Error processing dropped file: \(error)")
                         await MainActor.run {
-                            self.errorMessage = "Error processing drop: \(error.localizedDescription)"
+                            if let transferError = error as? TransferError {
+                                self.errorMessage = transferError.localizedDescription
+                            } else {
+                                self.errorMessage = "Error processing drop: \(error.localizedDescription)"
+                            }
                         }
                     }
                 } else {
                     print("No valid string data in drop")
                     await MainActor.run {
-                        self.errorMessage = "No valid data in drop"
+                        self.errorMessage = "Invalid data in drag operation"
                     }
                 }
             }
         }
     }
     
-    func handleLocalFileDroppedToSMB(provider: NSItemProvider, smbViewModel: FileTransferViewModel) {
+    func handleLocalFileDroppedToSMB(
+        provider: NSItemProvider,
+        smbViewModel: FileTransferViewModel
+    ) {
         provider.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) { secureData, error in
             guard error == nil else { return }
             
@@ -163,10 +162,10 @@ extension TransferManager {
                 }
                 
                 if let jsonString = jsonString {
-                    print("Received local file drop: \(jsonString)")
+                    print("Received local file drag data: \(jsonString)")
                     
                     do {
-                        // Try to decode as JSON
+                        // Try JSON format first
                         if let jsonData = jsonString.data(using: .utf8),
                            let fileInfo = try? JSONSerialization.jsonObject(with: jsonData) as? [String: String],
                            let path = fileInfo["path"],
@@ -177,75 +176,61 @@ extension TransferManager {
                             let url = URL(fileURLWithPath: path)
                             let isDirectory = isDirectoryStr == "true"
                             
-                            let transferInProgress = await MainActor.run {
-                                self.isFolderTransferInProgress || self.activeTransfer != nil
-                            }
-                            
-                            if transferInProgress {
-                                print("Transfer already in progress, ignoring drop")
-                                await MainActor.run {
+                            await MainActor.run {
+                                // Check if a transfer is already in progress
+                                if self.isTransferInProgress {
+                                    print("Transfer already in progress, ignoring drop")
                                     self.errorMessage = TransferError.transferInProgress.localizedDescription
+                                    return
                                 }
-                                return
                             }
                             
                             if isDirectory {
-                                // Create a LocalFile struct for the folder
-                                let folderFile = LocalFile(
-                                    name: url.lastPathComponent,
-                                    url: url,
-                                    isDirectory: true,
-                                    size: 0,
-                                    modificationDate: nil
-                                )
-                                
-                                // Start folder upload
-                                self.startFolderUpload(
-                                    folder: folderFile,
-                                    smbViewModel: smbViewModel
-                                ) {
-                                    // Refresh SMB view on completion
-                                    Task {
-                                        try? await smbViewModel.listFiles(smbViewModel.currentDirectory)
+                                // Create a LocalFile struct with the folder information
+                                if let folderFile = self.localFileFromURL(url) {
+                                    await self.startFolderUpload(
+                                        folder: folderFile,
+                                        smbViewModel: smbViewModel
+                                    ) {
+                                        // File upload completed
+                                    }
+                                } else {
+                                    print("Failed to create local file from URL: \(url)")
+                                    await MainActor.run {
+                                        self.errorMessage = "Failed to access local folder"
                                     }
                                 }
                             } else {
-                                // Create a LocalFile struct for the file
-                                let localFile = LocalFile(
-                                    name: url.lastPathComponent,
-                                    url: url,
-                                    isDirectory: false,
-                                    size: 0,
-                                    modificationDate: nil
-                                )
-                                
-                                // Start file upload
-                                self.startSingleFileUpload(
-                                    file: localFile,
-                                    smbViewModel: smbViewModel
-                                ) {
-                                    // Refresh SMB view on completion
-                                    Task {
-                                        try? await smbViewModel.listFiles(smbViewModel.currentDirectory)
+                                // Create a LocalFile struct with the file information
+                                if let localFile = self.localFileFromURL(url) {
+                                    await self.startSingleFileUpload(
+                                        file: localFile,
+                                        smbViewModel: smbViewModel
+                                    ) {
+                                        // File upload completed
+                                    }
+                                } else {
+                                    print("Failed to create local file from URL: \(url)")
+                                    await MainActor.run {
+                                        self.errorMessage = "Failed to access local file"
                                     }
                                 }
                             }
                         } else {
-                            print("Invalid drag data format")
+                            print("Invalid local file drag data format")
                             await MainActor.run {
-                                self.errorMessage = "Invalid drag data format"
+                                self.errorMessage = "Invalid file data in drag operation"
                             }
                         }
                     } catch {
-                        print("Error processing local file drop: \(error)")
+                        print("Error processing dropped local file: \(error)")
                         await MainActor.run {
-                            self.errorMessage = "Error processing drop: \(error.localizedDescription)"
+                            if let transferError = error as? TransferError {
+                                self.errorMessage = transferError.localizedDescription
+                            } else {
+                                self.errorMessage = "Error processing drop: \(error.localizedDescription)"
+                            }
                         }
-                    }
-                } else {
-                    print("No valid string data in drop")
-                    await MainActor.run {
-                        self.errorMessage = "No valid data in drop"
                     }
                 }
             }
