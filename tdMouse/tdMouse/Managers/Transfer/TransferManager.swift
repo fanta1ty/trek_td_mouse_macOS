@@ -50,7 +50,8 @@ class TransferManager: ObservableObject {
             localPath: localPath,
             completedItems: completedItems,
             totalItems: totalItems,
-            bytesTransferred: bytesTransferred
+            bytesTransferred: bytesTransferred,
+            direction: .toLocal
         )
         
         saveCheckpoint()

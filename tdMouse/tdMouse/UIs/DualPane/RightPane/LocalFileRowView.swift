@@ -69,7 +69,8 @@ struct LocalFileRowView_Previews: PreviewProvider {
                 name: "Name",
                 url: .homeDirectory,
                 isDirectory: false,
-                size: 100
+                size: 100,
+                modificationDate: nil
             )
         )
     }

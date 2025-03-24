@@ -1,28 +1,20 @@
 //
-//  LocalFile.swift
+//  File+Ext.swift
 //  tdMouse
 //
-//  Created by mobile on 15/3/25.
+//  Created by mobile on 22/3/25.
 //
 
+import SMBClient
 import Foundation
-import Combine
-import CoreTransferable
 
-struct LocalFile: Identifiable, Equatable {
-    let id: UUID
-    var name: String
-    var url: URL
-    var isDirectory: Bool
-    var size: Int64
-    var modificationDate: Date?
-    
-    var icon: String {
-        if isDirectory {
+extension File {
+    var systemIconName: String {
+        if self.isDirectory {
             return "folder"
         }
         
-        let ext = name.components(separatedBy: ".").last?.lowercased() ?? ""
+        let ext = self.name.components(separatedBy: ".").last?.lowercased() ?? ""
         
         switch ext {
         case "pdf":
@@ -52,29 +44,24 @@ struct LocalFile: Identifiable, Equatable {
         }
     }
     
+    var formattedSize: String {
+        guard !self.isDirectory else { return "--" }
+        
+        let formatter = ByteCountFormatter()
+        formatter.allowedUnits = [.useKB, .useMB, .useGB]
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: Int64(self.size))
+    }
+    
+    var formattedModificationDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        
+        return formatter.string(from: self.creationTime)
+    }
+    
     var isPreviewable: Bool {
-        return Helpers.isPreviewableFileType(name) && !isDirectory
-    }
-    
-    init(
-        id: UUID = UUID(),
-        name: String,
-        url: URL,
-        isDirectory: Bool,
-        size: Int64,
-        modificationDate: Date?
-    ) {
-        self.id = id
-        self.name = name
-        self.url = url
-        self.isDirectory = isDirectory
-        self.size = size
-        self.modificationDate = modificationDate
-    }
-    
-    static func == (lhs: LocalFile, rhs: LocalFile) -> Bool {
-        return lhs.id == rhs.id &&
-        lhs.name == rhs.name &&
-        lhs.url == rhs.url
+        return Helpers.isPreviewableFileType(self.name)
     }
 }
