@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct ConnectionSheet: View {
     @ObservedObject var viewModel: FileTransferViewModel
     @Binding var isPresented: Bool
