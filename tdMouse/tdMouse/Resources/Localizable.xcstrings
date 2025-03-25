@@ -63,6 +63,9 @@
     "Connecting..." : {
 
     },
+    "Connection Details" : {
+
+    },
     "Connection Error" : {
 
     },
@@ -90,7 +93,7 @@
     "Disconnected" : {
 
     },
-    "Domain (optional)" : {
+    "Domain (Optional)" : {
 
     },
     "Donwload Folder" : {
@@ -109,6 +112,15 @@
 
     },
     "Enter a name for this connection" : {
+
+    },
+    "Enter connection name" : {
+
+    },
+    "Enter domain if required" : {
+
+    },
+    "Enter hostname or IP address" : {
 
     },
     "Enter IP address" : {
@@ -189,16 +201,13 @@
     "Port" : {
 
     },
-    "Port:" : {
-
-    },
     "Reconnect" : {
 
     },
     "Refresh" : {
 
     },
-    "Save" : {
+    "Save Changes" : {
 
     },
     "Save Connection" : {
@@ -268,6 +277,9 @@
 
     },
     "Username" : {
+
+    },
+    "Validation Error" : {
 
     },
     "View File" : {
