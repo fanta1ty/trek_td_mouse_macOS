@@ -33,6 +33,9 @@
     "%lld%%" : {
 
     },
+    "445" : {
+
+    },
     "Add new connection" : {
 
     },
@@ -51,7 +54,7 @@
     "Connect to Server" : {
 
     },
-    "Connect to SMB Server" : {
+    "Connect to TD Mouse" : {
 
     },
     "Connected to %@" : {
@@ -60,10 +63,10 @@
     "Connecting..." : {
 
     },
-    "Connection Name" : {
+    "Connection Error" : {
 
     },
-    "Connection Name (optional)" : {
+    "Connection Name" : {
 
     },
     "Connections" : {
@@ -105,6 +108,18 @@
     "Edit Connection" : {
 
     },
+    "Enter a name for this connection" : {
+
+    },
+    "Enter IP address" : {
+
+    },
+    "Enter password" : {
+
+    },
+    "Enter username" : {
+
+    },
     "Error" : {
 
     },
@@ -115,6 +130,9 @@
 
     },
     "Folder Name" : {
+
+    },
+    "Hide password" : {
 
     },
     "Host" : {
@@ -202,6 +220,9 @@
 
     },
     "Shares" : {
+
+    },
+    "Show password" : {
 
     },
     "SMB File Transfer" : {
