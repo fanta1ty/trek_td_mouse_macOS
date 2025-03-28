@@ -128,20 +128,6 @@ struct SMBPaneView: View {
                         .buttonStyle(.plain)
                         .help("Search Files")
                     }
-                    
-                    Button(action: {
-                        NotificationCenter.default.post(name: Notification.Name("CreateSMBFolder"), object: nil)
-                    }) {
-                        Image(systemName: "folder.badge.plus")
-                            .font(.system(size: 18))
-                            .foregroundColor(.white)
-                            .padding(12)
-                            .background(Color.green)
-                            .clipShape(Circle())
-                            .shadow(radius: 2)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Create New Folder")
                 }
                 .padding(16)
             }

@@ -4,6 +4,9 @@
     ".%@ files cannot be previewed directly." : {
 
     },
+    "@%@" : {
+
+    },
     "%@ Complete" : {
 
     },
@@ -55,6 +58,9 @@
     "445" : {
 
     },
+    "Actions" : {
+
+    },
     "Add Connection" : {
 
     },
@@ -97,6 +103,9 @@
     "Connect to a server to browse and transfer files" : {
 
     },
+    "Connect to server" : {
+
+    },
     "Connect to Server" : {
 
     },
@@ -124,7 +133,13 @@
     "Connection Name" : {
 
     },
+    "Connection Settings" : {
+
+    },
     "Connections" : {
+
+    },
+    "Copy Share Path" : {
 
     },
     "Create" : {
@@ -223,6 +238,9 @@
     "Folder Name" : {
 
     },
+    "Go to Root Directory" : {
+
+    },
     "Hide password" : {
 
     },
@@ -262,13 +280,25 @@
     "No files match '%@'" : {
 
     },
+    "No matching shares found" : {
+
+    },
     "No saved connections" : {
+
+    },
+    "No shares available" : {
 
     },
     "No speed data available" : {
 
     },
     "Not connected" : {
+
+    },
+    "Not Connected" : {
+
+    },
+    "Not connected to any server" : {
 
     },
     "Not Connected to SMB Server" : {
@@ -310,6 +340,9 @@
     "Real-time monitoring" : {
 
     },
+    "Recent" : {
+
+    },
     "Reconnect" : {
 
     },
@@ -340,10 +373,10 @@
     "Search files..." : {
 
     },
-    "Select Directory" : {
+    "Search shares" : {
 
     },
-    "Server" : {
+    "Select Directory" : {
 
     },
     "Server Details" : {
