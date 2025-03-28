@@ -26,9 +26,55 @@ struct DualPaneFileTransferView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Top View - TD Mouse
             VStack(spacing: 0) {
                 // SMB Header
                 smbHeaderView
+                
+                // Path bar
+                if smbViewModel.connectionState == .connected {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            Text(smbViewModel.shareName + (smbViewModel.currentDirectory.isEmpty ? "" : "/" + smbViewModel.currentDirectory))
+                                .lineLimit(1)
+                                .font(.caption)
+                                .padding(.horizontal)
+                        }
+                        .frame(height: 30)
+                    }
+                    .background(Color(UIColor.secondarySystemBackground))
+                }
+                
+                // SMB File List
+                ZStack {
+                    if smbViewModel.connectionState == .connected {
+                        
+                    } else {
+                        // Not connected placeholder
+                        VStack(spacing: 20) {
+                            Image(systemName: "network.slash")
+                                .font(.system(size: 40))
+                                .foregroundStyle(Color.secondary)
+                            
+                            Text("No Connected")
+                                .font(.headline)
+                            
+                            Button("Connect") {
+                                isConnectSheetPresented.toggle()
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Enable drop of local file to TD Mouse
+                .onDrop(of: [UTType.data.identifier], isTargeted: $isDraggingLocalToSmb) { providers in
+                    if let localFile = draggedLocalFile, smbViewModel.connectionState == .connected {
+                        return true
+                    }
+                    return false
+                }
+                .background(isDraggingLocalToSmb ? Color.blue.opacity(0.1) : Color.clear)
             }
             .frame(height: UIScreen.main.bounds.height * 0.45)
             
@@ -60,6 +106,9 @@ struct DualPaneFileTransferView: View {
                         
                     } else if localViewModel.files.isEmpty {
                         emptyFilesPlaceholder(message: "No Files", description: "This folder is empty")
+                        
+                    } else {
+                        localFilesListView
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -75,6 +124,15 @@ struct DualPaneFileTransferView: View {
             .frame(maxHeight: .infinity)
         }
         .overlay(transferOverlay)
+        .sheet(isPresented: $isConnectSheetPresented, content: {
+            ConnectionSheet(
+                viewModel: smbViewModel,
+                isPresented: $isConnectSheetPresented
+            )
+        })
+        .onAppear {
+            localViewModel.initialize()
+        }
     }
     
     // MARK: - SMB Header View
@@ -221,6 +279,22 @@ struct DualPaneFileTransferView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity)
+    }
+    
+    // MARK: - Local Files List View
+    private var localFilesListView: some View {
+        List {
+            ForEach(localViewModel.files, id: \.id) { file in
+                
+            }
+            .onDelete { indexSet in
+                for index in indexSet {
+                    let file = localViewModel.files[index]
+                    localViewModel.deleteFile(file)
+                }
+            }
+        }
+        .listStyle(PlainListStyle())
     }
 }
 
