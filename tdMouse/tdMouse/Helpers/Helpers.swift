@@ -8,7 +8,7 @@
 import Foundation
 
 struct Helpers {
-    static func iconForFile(_ fileName: String) -> String {
+    static func iconForFile(_ fileName: String) -> String {        
         let ext = (fileName as NSString).pathExtension.lowercased()
         
         switch ext {

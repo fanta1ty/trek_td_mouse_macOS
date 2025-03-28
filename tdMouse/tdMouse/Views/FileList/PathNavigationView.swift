@@ -33,9 +33,3 @@ struct PathNavigationView: View {
     }
     
 }
-
-struct PathNavigationView_Previews: PreviewProvider {
-    static var previews: some View {
-        FileListContainerView(viewModel: FileTransferViewModel())
-    }
-}

@@ -102,6 +102,12 @@
     "Download" : {
 
     },
+    "Download File" : {
+
+    },
+    "Download Folder" : {
+
+    },
     "Downloading %@" : {
 
     },
@@ -195,10 +201,16 @@
     "Open" : {
 
     },
+    "Open Folder" : {
+
+    },
     "Password" : {
 
     },
     "Port" : {
+
+    },
+    "Preview File" : {
 
     },
     "Reconnect" : {

@@ -11,6 +11,8 @@ import SMBClient
 
 struct FileTransferView: View {
     @StateObject private var viewModel: FileTransferViewModel = .init()
+    @StateObject private var localViewModel: LocalFileViewModel = .init()
+    
     @State private var isConnectSheetPresented = false
     @State private var isCreateFolderSheetPresented = false
     @State private var isImportFilePickerPresented = false
@@ -30,7 +32,10 @@ struct FileTransferView: View {
             
             // Main content with file listing
             if viewModel.connectionState == .connected {
-                FileListContainerView(viewModel: viewModel)
+                FileListContainerView(
+                    viewModel: viewModel,
+                    localViewModel: localViewModel
+                )
             } else {
                 DisconnectedPlaceholderView {
                     isConnectSheetPresented.toggle()

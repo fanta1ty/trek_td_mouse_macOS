@@ -10,6 +10,8 @@ import SMBClient
 
 struct FileListContainerView: View {
     @ObservedObject var viewModel: FileTransferViewModel
+    @ObservedObject var localViewModel: LocalFileViewModel
+    
     @State private var selectedFile: File?
     @State private var isFileActionSheetPresented = false
     
@@ -35,7 +37,9 @@ struct FileListContainerView: View {
                 FileActionSheet(
                     viewModel: viewModel,
                     isPresented: $isFileActionSheetPresented,
-                    file: file
+                    file: file,
+                    transferManager: .init(),
+                    localViewModel: localViewModel
                 )
             }
         }
@@ -44,6 +48,9 @@ struct FileListContainerView: View {
 
 struct FileListContainerView_Previews: PreviewProvider {
     static var previews: some View {
-        FileListContainerView(viewModel: FileTransferViewModel())
+        FileListContainerView(
+            viewModel: FileTransferViewModel(),
+            localViewModel: LocalFileViewModel()
+        )
     }
 }
