@@ -119,7 +119,7 @@ extension TransferManager {
                         // Add a small delay to ensure UI updates properly
                         Task {
                             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
-                            smbViewModel.showTransferSummary = true
+                            smbViewModel.showTransferSummary = false
                         }
                     }
                     

@@ -63,7 +63,7 @@ struct SMBFileRow: View {
                     UniversalFilePreviewView(
                         title: file.name,
                         fileProvider: {
-                            return try await viewModel.downloadFile(fileName: file.name)
+                            return try await viewModel.downloadFile(fileName: file.name, trackTransfer: false)
                         },
                         fileExtension: file.name.components(separatedBy: ".").last ?? ""
                     )

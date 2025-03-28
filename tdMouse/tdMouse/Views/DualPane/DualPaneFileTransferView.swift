@@ -271,7 +271,7 @@ struct DualPaneFileTransferView: View {
         currentPreviewFile = PreviewFileInfo(
             title: file.name,
             provider: {
-                try await smbViewModel.downloadFile(fileName: file.name)
+                try await smbViewModel.downloadFile(fileName: file.name, trackTransfer: false)
             },
             extension: file.name.components(separatedBy: ".").last ?? ""
         )

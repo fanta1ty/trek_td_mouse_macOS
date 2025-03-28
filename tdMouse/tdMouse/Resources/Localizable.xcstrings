@@ -70,7 +70,16 @@
     "Are you sure you want to delete this connection?" : {
 
     },
+    "Audio Track" : {
+
+    },
     "AVAILABLE SHARES" : {
+
+    },
+    "Average" : {
+
+    },
+    "Avg Speed" : {
 
     },
     "Cancel" : {
@@ -139,6 +148,9 @@
     "Delete Connection" : {
 
     },
+    "Detailed Statistics" : {
+
+    },
     "Disconnect" : {
 
     },
@@ -151,6 +163,9 @@
     "Download" : {
 
     },
+    "Download Audio" : {
+
+    },
     "Download File" : {
 
     },
@@ -160,6 +175,9 @@
     "Downloading" : {
 
     },
+    "Duration" : {
+
+    },
     "Edit" : {
 
     },
@@ -167,6 +185,9 @@
 
     },
     "Edit Connection" : {
+
+    },
+    "End" : {
 
     },
     "Enter a name for this connection" : {
@@ -235,10 +256,16 @@
     "New Folder" : {
 
     },
+    "No data" : {
+
+    },
     "No files match '%@'" : {
 
     },
     "No saved connections" : {
+
+    },
+    "No speed data available" : {
 
     },
     "Not connected" : {
@@ -262,6 +289,15 @@
     "Password" : {
 
     },
+    "Pause" : {
+
+    },
+    "Peak" : {
+
+    },
+    "Play" : {
+
+    },
     "Port" : {
 
     },
@@ -269,6 +305,9 @@
 
     },
     "Preview File" : {
+
+    },
+    "Real-time monitoring" : {
 
     },
     "Reconnect" : {
@@ -313,6 +352,9 @@
     "Server Details" : {
 
     },
+    "Share" : {
+
+    },
     "Share: %@" : {
 
     },
@@ -320,6 +362,9 @@
 
     },
     "Show password" : {
+
+    },
+    "Size" : {
 
     },
     "SMB File Transfer" : {
@@ -331,6 +376,12 @@
     "SMB: %@" : {
 
     },
+    "Speed Analysis" : {
+
+    },
+    "Start" : {
+
+    },
     "TD Mouse" : {
 
     },
@@ -338,6 +389,9 @@
 
     },
     "This folder is empty" : {
+
+    },
+    "Time" : {
 
     },
     "Toggle sidebar" : {
