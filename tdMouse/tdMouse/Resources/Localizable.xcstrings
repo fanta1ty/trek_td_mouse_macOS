@@ -4,28 +4,44 @@
     ".%@ files cannot be previewed directly." : {
 
     },
-    "/" : {
-
-    },
     "%@ Complete" : {
 
     },
-    "%lld items on server • %lld local items" : {
+    "%@%@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$lld items on server • %2$lld local items"
+            "value" : "%1$@%2$@"
           }
         }
       }
     },
-    "%lld/%lld items" : {
+    "%lld" : {
+
+    },
+    "%lld local files" : {
+
+    },
+    "%lld of %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$lld/%2$lld items"
+            "value" : "%1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "%lld SMB files" : {
+
+    },
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
           }
         }
       }
@@ -33,16 +49,34 @@
     "%lld%%" : {
 
     },
+    "•" : {
+
+    },
     "445" : {
+
+    },
+    "Add Connection" : {
+
+    },
+    "Add files or select another directory" : {
 
     },
     "Add new connection" : {
 
     },
-    "Available Shares" : {
+    "Are you sure you want to delete the connection to '%@'?" : {
+
+    },
+    "Are you sure you want to delete this connection?" : {
+
+    },
+    "AVAILABLE SHARES" : {
 
     },
     "Cancel" : {
+
+    },
+    "Cancel Search" : {
 
     },
     "Close" : {
@@ -51,10 +85,16 @@
     "Connect" : {
 
     },
+    "Connect to a server to browse and transfer files" : {
+
+    },
     "Connect to Server" : {
 
     },
     "Connect to TD Mouse" : {
+
+    },
+    "Connected" : {
 
     },
     "Connected to %@" : {
@@ -64,6 +104,9 @@
 
     },
     "Connection Details" : {
+
+    },
+    "Connection error" : {
 
     },
     "Connection Error" : {
@@ -81,10 +124,19 @@
     "Create New Folder" : {
 
     },
+    "Create new folder on server" : {
+
+    },
     "Credentials" : {
 
     },
     "Delete" : {
+
+    },
+    "Delete connection" : {
+
+    },
+    "Delete Connection" : {
 
     },
     "Disconnect" : {
@@ -96,9 +148,6 @@
     "Domain (Optional)" : {
 
     },
-    "Donwload Folder" : {
-
-    },
     "Download" : {
 
     },
@@ -108,10 +157,13 @@
     "Download Folder" : {
 
     },
-    "Downloading %@" : {
+    "Downloading" : {
 
     },
     "Edit" : {
+
+    },
+    "Edit connection" : {
 
     },
     "Edit Connection" : {
@@ -156,13 +208,13 @@
     "Host" : {
 
     },
-    "Listing %@" : {
-
-    },
     "Loading file..." : {
 
     },
-    "Loading files..." : {
+    "Loading Files..." : {
+
+    },
+    "Loading shares..." : {
 
     },
     "Local Error" : {
@@ -171,25 +223,28 @@
     "Local Files" : {
 
     },
-    "More Options..." : {
+    "More Actions" : {
+
+    },
+    "More Actions..." : {
+
+    },
+    "Navigate Up" : {
 
     },
     "New Folder" : {
 
     },
-    "No Files" : {
+    "No files match '%@'" : {
 
     },
     "No saved connections" : {
 
     },
-    "No shares available" : {
-
-    },
     "Not connected" : {
 
     },
-    "Not Connected" : {
+    "Not Connected to SMB Server" : {
 
     },
     "Note: Password will not be saved" : {
@@ -210,6 +265,9 @@
     "Port" : {
 
     },
+    "Preview" : {
+
+    },
     "Preview File" : {
 
     },
@@ -217,6 +275,9 @@
 
     },
     "Refresh" : {
+
+    },
+    "Refresh current view" : {
 
     },
     "Save Changes" : {
@@ -228,16 +289,31 @@
     "Save connection for future use" : {
 
     },
-    "Saved Connections" : {
+    "Save current connection" : {
+
+    },
+    "SAVED CONNECTIONS" : {
+
+    },
+    "Search Files" : {
+
+    },
+    "Search files..." : {
 
     },
     "Select a server to connect" : {
+
+    },
+    "Select Directory" : {
 
     },
     "Server" : {
 
     },
     "Server Details" : {
+
+    },
+    "Share: %@" : {
 
     },
     "Shares" : {
@@ -267,25 +343,28 @@
     "Toggle sidebar" : {
 
     },
+    "Toggle Sidebar" : {
+
+    },
     "Transfer Speed" : {
 
     },
     "Try downloading the file to view it in a compatible application." : {
 
     },
-    "Upload" : {
-
-    },
     "Upload File" : {
 
     },
-    "Upload Folder to TD Mouse" : {
+    "Upload Folder" : {
 
     },
-    "Upload to TD Mouse" : {
+    "Upload Folder to Server" : {
 
     },
-    "Uploading %@" : {
+    "Upload to Server" : {
+
+    },
+    "Uploading" : {
 
     },
     "Username" : {

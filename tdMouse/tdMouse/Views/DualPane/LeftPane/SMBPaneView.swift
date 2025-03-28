@@ -11,113 +11,139 @@ import UniformTypeIdentifiers
 
 struct SMBPaneView: View {
     @ObservedObject var viewModel: FileTransferViewModel
+    @State private var isSearching = false
+    @State private var searchText = ""
+    @State private var showsFilterOptions = false
+    
     let onFileTap: (File) -> Void
     let onLocalFileDrop: (NSItemProvider) -> Void
     
+    private var filteredFiles: [File] {
+        let files = viewModel.files.filter { $0.name != "." && $0.name != ".." }
+        
+        if searchText.isEmpty {
+            return files
+        } else {
+            return files.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                Text(viewModel.connectionState == .connected ? "SMB: \(viewModel.credentials.host)" : "SMB Server")
-                    .font(.headline)
-                    .padding(.leading)
-                
-                Spacer()
-                
-                if viewModel.connectionState == .connected {
-                    Button(action: {
-                        Task {
-                            try await viewModel.navigateUp()
-                        }
-                    }) {
-                        Image(systemName: "arrow.up")
-                    }
-                    .disabled(viewModel.currentDirectory.isEmpty)
-                    .padding(.trailing)
-                }
-            }
-            .padding(.vertical, 8)
-            .background(Color(NSColor.controlBackgroundColor))
+            // Header with enhanced controls
+            SMBPaneHeader(viewModel: viewModel)
             
             if viewModel.connectionState == .connected {
-                // Path bar
-                HStack {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 0) {
-                            // Root (share) button
-                            Button(action: {
-                                Task {
-                                    try await viewModel.listFiles("")
-                                }
-                            }) {
-                                Text(viewModel.shareName)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.blue.opacity(0.1))
-                                    .cornerRadius(4)
-                            }
-                            .buttonStyle(BorderlessButtonStyle())
-                            
-                            if !viewModel.currentDirectory.isEmpty {
-                                Text("/")
+                // Modern breadcrumb path bar
+                BreadcrumbPathView(viewModel: viewModel)
+                
+                // Search bar (appears when isSearching is true)
+                if isSearching {
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                        
+                        TextField("Search files...", text: $searchText)
+                            .textFieldStyle(.plain)
+                        
+                        if !searchText.isEmpty {
+                            Button(action: { searchText = "" }) {
+                                Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(.secondary)
-                                
-                                // Split the path and create clickable segments
-                                let pathComponents = viewModel.currentDirectory.components(separatedBy: "/")
-                                ForEach(0..<pathComponents.count, id: \.self) { index in
-                                    let component = pathComponents[index]
-                                    
-                                    // Build the path up to this segment
-                                    let subPath = pathComponents[0...index].joined(separator: "/")
-                                    
-                                    Button(action: {
-                                        Task {
-                                            try await viewModel.listFiles(subPath)
-                                        }
-                                    }) {
-                                        Text(component)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.blue.opacity(0.1))
-                                            .cornerRadius(4)
-                                    }
-                                    .buttonStyle(BorderlessButtonStyle())
-                                    
-                                    if index < pathComponents.count - 1 {
-                                        Text("/")
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(8)
+                    .background(Color(NSColor.textBackgroundColor))
+                }
+                
+                // File list with modern styling
+                if filteredFiles.isEmpty {
+                    VStack(spacing: 20) {
+                        Spacer()
+                        
+                        if searchText.isEmpty {
+                            // Empty folder state
+                            Image(systemName: "folder.badge.questionmark")
+                                .font(.system(size: 48))
+                                .foregroundColor(.secondary)
+                            Text("This folder is empty")
+                                .font(.title3)
+                        } else {
+                            // No search results state
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 48))
+                                .foregroundColor(.secondary)
+                            Text("No files match '\(searchText)'")
+                                .font(.title3)
+                        }
+                        
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 2) {
+                            ForEach(filteredFiles, id: \.name) { file in
+                                SMBFileRow(viewModel: viewModel, file: file, onFileTap: onFileTap)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 2)
                             }
                         }
-                        .padding(.horizontal, 4)
-                    }
-                }
-                .frame(height: 28)
-                .background(Color(NSColor.textBackgroundColor))
-                
-                // File list
-                List {
-                    ForEach(viewModel.files.filter { $0.name != "." && $0.name != ".." }, id: \.name) { file in
-                        SMBFileRow(viewModel: viewModel, file: file, onFileTap: onFileTap)
+                        .padding(.vertical, 4)
                     }
                 }
             } else {
-                // Not connected placeholder
-                VStack {
-                    Spacer()
-                    Image(systemName: "network.slash")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
-                    Text("Not Connected")
-                        .font(.title2)
-                        .padding()
-                    Button("Connect") {
-                        NotificationCenter.default.post(name: Notification.Name("OpenSMBConnect"), object: nil)
+                // Enhanced not-connected placeholder
+                ConnectionPlaceholder()
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if viewModel.connectionState == .connected {
+                // Floating action buttons
+                VStack(spacing: 12) {
+                    if isSearching {
+                        Button(action: { isSearching = false }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(.white)
+                                .padding(12)
+                                .background(Color.gray)
+                                .clipShape(Circle())
+                                .shadow(radius: 2)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Cancel Search")
+                    } else {
+                        Button(action: { isSearching = true }) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 18))
+                                .foregroundColor(.white)
+                                .padding(12)
+                                .background(Color.blue)
+                                .clipShape(Circle())
+                                .shadow(radius: 2)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Search Files")
                     }
-                    .buttonStyle(.borderedProminent)
-                    Spacer()
+                    
+                    Button(action: {
+                        NotificationCenter.default.post(name: Notification.Name("CreateSMBFolder"), object: nil)
+                    }) {
+                        Image(systemName: "folder.badge.plus")
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                            .padding(12)
+                            .background(Color.green)
+                            .clipShape(Circle())
+                            .shadow(radius: 2)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Create New Folder")
                 }
+                .padding(16)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -128,5 +154,25 @@ struct SMBPaneView: View {
             }
             return true
         }
+        .toolbar {
+            if viewModel.connectionState == .connected {
+                ToolbarItem(placement: .primaryAction) {
+                    Button(action: {
+                        Task {
+                            try await viewModel.refreshCurrentDirectory()
+                        }
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .help("Refresh")
+                }
+            }
+        }
+    }
+}
+
+extension FileTransferViewModel {
+    func refreshCurrentDirectory() async throws {
+        try await listFiles(currentDirectory)
     }
 }
