@@ -10,16 +10,17 @@ import Combine
 
 @main
 struct SMBFileTransferApp: App {
+    @StateObject private var notificationCenter = FileNotificationCenter.shared
+    @StateObject private var preferencesManager = PreferencesManager.shared
+    
     var body: some Scene {
         WindowGroup {
             DualPaneFileTransferView()
                 .frame(minWidth: 900, minHeight: 600)
+                .environmentObject(notificationCenter)
+                .environmentObject(preferencesManager)
                 .onAppear {
-                    // Set window title on macOS
-                    if let window = NSApplication.shared.windows.first {
-                        window.title = "TD Mouse"
-                        window.setFrameAutosaveName("SMBFileTransferWindow")
-                    }
+                    configureMainWindow()
                 }
         }
         .windowToolbarStyle(UnifiedWindowToolbarStyle())
@@ -53,6 +54,19 @@ struct SMBFileTransferApp: App {
                     FileNotificationCenter.shared.postRefreshFileList()
                 }
                 .keyboardShortcut("r", modifiers: .command)
+            }
+        }
+    }
+    
+    private func configureMainWindow() {
+        if let window = NSApplication.shared.windows.first {
+            window.title = "TD Mouse"
+            window.setFrameAutosaveName("SMBFileTransferWindow")
+            window.setContentSize(NSSize(width: 900, height: 600))
+            
+            if preferencesManager.isFirstLaunch {
+                window.center()
+                preferencesManager.isFirstLaunch = false
             }
         }
     }

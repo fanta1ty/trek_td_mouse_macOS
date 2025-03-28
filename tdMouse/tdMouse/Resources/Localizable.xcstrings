@@ -4,25 +4,47 @@
     ".%@ files cannot be previewed directly." : {
 
     },
+    "@%@" : {
+
+    },
     "%@ Complete" : {
 
     },
-    "%lld items on server • %lld local items" : {
+    "%@%@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$lld items on server • %2$lld local items"
+            "value" : "%1$@%2$@"
           }
         }
       }
     },
-    "%lld/%lld items" : {
+    "%lld" : {
+
+    },
+    "%lld local files" : {
+
+    },
+    "%lld of %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$lld/%2$lld items"
+            "value" : "%1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "%lld SMB files" : {
+
+    },
+    "%lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld"
           }
         }
       }
@@ -30,13 +52,46 @@
     "%lld%%" : {
 
     },
+    "•" : {
+
+    },
+    "445" : {
+
+    },
+    "Actions" : {
+
+    },
+    "Add Connection" : {
+
+    },
+    "Add files or select another directory" : {
+
+    },
     "Add new connection" : {
 
     },
-    "Available Shares" : {
+    "Are you sure you want to delete the connection to '%@'?" : {
+
+    },
+    "Are you sure you want to delete this connection?" : {
+
+    },
+    "Audio Track" : {
+
+    },
+    "AVAILABLE SHARES" : {
+
+    },
+    "Average" : {
+
+    },
+    "Avg Speed" : {
 
     },
     "Cancel" : {
+
+    },
+    "Cancel Search" : {
 
     },
     "Close" : {
@@ -45,10 +100,19 @@
     "Connect" : {
 
     },
+    "Connect to a server to browse and transfer files" : {
+
+    },
+    "Connect to server" : {
+
+    },
     "Connect to Server" : {
 
     },
-    "Connect to SMB Server" : {
+    "Connect to TD Mouse" : {
+
+    },
+    "Connected" : {
 
     },
     "Connected to %@" : {
@@ -57,13 +121,25 @@
     "Connecting..." : {
 
     },
+    "Connection Details" : {
+
+    },
+    "Connection error" : {
+
+    },
+    "Connection Error" : {
+
+    },
     "Connection Name" : {
 
     },
-    "Connection Name (optional)" : {
+    "Connection Settings" : {
 
     },
     "Connections" : {
+
+    },
+    "Copy Share Path" : {
 
     },
     "Create" : {
@@ -72,10 +148,22 @@
     "Create New Folder" : {
 
     },
+    "Create new folder on server" : {
+
+    },
     "Credentials" : {
 
     },
     "Delete" : {
+
+    },
+    "Delete connection" : {
+
+    },
+    "Delete Connection" : {
+
+    },
+    "Detailed Statistics" : {
 
     },
     "Disconnect" : {
@@ -84,22 +172,58 @@
     "Disconnected" : {
 
     },
-    "Domain (optional)" : {
-
-    },
-    "Donwload Folder" : {
+    "Domain (Optional)" : {
 
     },
     "Download" : {
 
     },
-    "Downloading %@" : {
+    "Download Audio" : {
+
+    },
+    "Download File" : {
+
+    },
+    "Download Folder" : {
+
+    },
+    "Downloading" : {
+
+    },
+    "Duration" : {
 
     },
     "Edit" : {
 
     },
+    "Edit connection" : {
+
+    },
     "Edit Connection" : {
+
+    },
+    "End" : {
+
+    },
+    "Enter a name for this connection" : {
+
+    },
+    "Enter connection name" : {
+
+    },
+    "Enter domain if required" : {
+
+    },
+    "Enter hostname or IP address" : {
+
+    },
+    "Enter IP address" : {
+
+    },
+    "Enter password" : {
+
+    },
+    "Enter username" : {
 
     },
     "Error" : {
@@ -114,16 +238,22 @@
     "Folder Name" : {
 
     },
-    "Host" : {
+    "Go to Root Directory" : {
 
     },
-    "Listing %@" : {
+    "Hide password" : {
+
+    },
+    "Host" : {
 
     },
     "Loading file..." : {
 
     },
-    "Loading files..." : {
+    "Loading Files..." : {
+
+    },
+    "Loading shares..." : {
 
     },
     "Local Error" : {
@@ -132,13 +262,25 @@
     "Local Files" : {
 
     },
-    "More Options..." : {
+    "More Actions" : {
+
+    },
+    "More Actions..." : {
+
+    },
+    "Navigate Up" : {
 
     },
     "New Folder" : {
 
     },
-    "No Files" : {
+    "No data" : {
+
+    },
+    "No files match '%@'" : {
+
+    },
+    "No matching shares found" : {
 
     },
     "No saved connections" : {
@@ -147,10 +289,19 @@
     "No shares available" : {
 
     },
+    "No speed data available" : {
+
+    },
     "Not connected" : {
 
     },
     "Not Connected" : {
+
+    },
+    "Not connected to any server" : {
+
+    },
+    "Not Connected to SMB Server" : {
 
     },
     "Note: Password will not be saved" : {
@@ -162,13 +313,34 @@
     "Open" : {
 
     },
+    "Open Folder" : {
+
+    },
     "Password" : {
+
+    },
+    "Pause" : {
+
+    },
+    "Peak" : {
+
+    },
+    "Play" : {
 
     },
     "Port" : {
 
     },
-    "Port:" : {
+    "Preview" : {
+
+    },
+    "Preview File" : {
+
+    },
+    "Real-time monitoring" : {
+
+    },
+    "Recent" : {
 
     },
     "Reconnect" : {
@@ -177,7 +349,10 @@
     "Refresh" : {
 
     },
-    "Save" : {
+    "Refresh current view" : {
+
+    },
+    "Save Changes" : {
 
     },
     "Save Connection" : {
@@ -186,19 +361,40 @@
     "Save connection for future use" : {
 
     },
-    "Saved Connections" : {
+    "Save current connection" : {
 
     },
-    "Select a server to connect" : {
+    "SAVED CONNECTIONS" : {
 
     },
-    "Server" : {
+    "Search Files" : {
+
+    },
+    "Search files..." : {
+
+    },
+    "Search shares" : {
+
+    },
+    "Select Directory" : {
 
     },
     "Server Details" : {
 
     },
+    "Share" : {
+
+    },
+    "Share: %@" : {
+
+    },
     "Shares" : {
+
+    },
+    "Show password" : {
+
+    },
+    "Size" : {
 
     },
     "SMB File Transfer" : {
@@ -210,6 +406,12 @@
     "SMB: %@" : {
 
     },
+    "Speed Analysis" : {
+
+    },
+    "Start" : {
+
+    },
     "TD Mouse" : {
 
     },
@@ -219,7 +421,13 @@
     "This folder is empty" : {
 
     },
+    "Time" : {
+
+    },
     "Toggle sidebar" : {
+
+    },
+    "Toggle Sidebar" : {
 
     },
     "Transfer Speed" : {
@@ -228,22 +436,25 @@
     "Try downloading the file to view it in a compatible application." : {
 
     },
-    "Upload" : {
-
-    },
     "Upload File" : {
 
     },
-    "Upload Folder to TD Mouse" : {
+    "Upload Folder" : {
 
     },
-    "Upload to TD Mouse" : {
+    "Upload Folder to Server" : {
 
     },
-    "Uploading %@" : {
+    "Upload to Server" : {
+
+    },
+    "Uploading" : {
 
     },
     "Username" : {
+
+    },
+    "Validation Error" : {
 
     },
     "View File" : {

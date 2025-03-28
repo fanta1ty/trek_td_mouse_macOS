@@ -10,29 +10,34 @@ import SwiftUI
 import Combine
 import SMBClient
 
-class FileNotificationCenter {
+class FileNotificationCenter: ObservableObject {
     static let shared = FileNotificationCenter()
     
     // Notification names
-    static let fileSelectedNotification = NSNotification.Name("FileSelected")
     static let openConnectDialogNotification = NSNotification.Name("OpenConnectDialog")
     static let openUploadDialogNotification = NSNotification.Name("OpenUploadDialog")
     static let openNewFolderDialogNotification = NSNotification.Name("OpenNewFolderDialog")
     static let refreshFileListNotification = NSNotification.Name("RefreshFileList")
+    static let toggleSidebarNotification = NSNotification.Name("ToggleSidebar")
+    static let showTransferHistoryNotification = NSNotification.Name("ShowTransferHistory")
+    static let openFilePreviewNotification = NSNotification.Name("OpenFilePreview")
     
-    // Post a notification to select a file
-    func postFileSelected(_ file: File) {
-        NotificationCenter.default.post(
-            name: Self.fileSelectedNotification,
-            object: file
-        )
-    }
+    static let fileSelectedNotification = NSNotification.Name("FileSelected")
+    
     
     // Post a notification to open the connect dialog
     func postOpenConnectDialog() {
         NotificationCenter.default.post(
             name: Self.openConnectDialogNotification,
             object: nil
+        )
+    }
+    
+    // Post a notification to select a file
+    func postFileSelected(_ file: File) {
+        NotificationCenter.default.post(
+            name: Self.fileSelectedNotification,
+            object: file
         )
     }
     
@@ -56,6 +61,27 @@ class FileNotificationCenter {
     func postRefreshFileList() {
         NotificationCenter.default.post(
             name: Self.refreshFileListNotification,
+            object: nil
+        )
+    }
+    
+    func postToggleSidebar() {
+        NotificationCenter.default.post(
+            name: Self.toggleSidebarNotification,
+            object: nil
+        )
+    }
+    
+    func postShowTransferHistory() {
+        NotificationCenter.default.post(
+            name: Self.showTransferHistoryNotification,
+            object: nil
+        )
+    }
+    
+    func postOpenFilePreview() {
+        NotificationCenter.default.post(
+            name: Self.openFilePreviewNotification,
             object: nil
         )
     }
