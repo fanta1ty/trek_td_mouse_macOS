@@ -19,7 +19,7 @@ struct LocalFile: Identifiable, Equatable {
     
     var icon: String {
         if isDirectory {
-            return "folder"
+            return "folder.fill"
         }
         
         let ext = name.components(separatedBy: ".").last?.lowercased() ?? ""

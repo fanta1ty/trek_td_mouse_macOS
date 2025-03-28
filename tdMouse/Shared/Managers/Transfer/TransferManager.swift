@@ -234,7 +234,7 @@ extension TransferManager {
         
         return count
     }
-    
+
     func localFileFromURL(_ url: URL) -> LocalFile? {
         do {
             let resourceValues = try url.resourceValues(forKeys: [
