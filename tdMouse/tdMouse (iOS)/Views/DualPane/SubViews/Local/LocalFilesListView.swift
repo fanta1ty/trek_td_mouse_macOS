@@ -22,8 +22,8 @@ struct LocalFilesListView: View {
         List {
             ForEach(viewModel.files, id: \.id) { file in
                 LocalFileRowView(
-                    viewModel: viewModel,
-                    file: file
+                    file: file,
+                    viewModel: viewModel
                 )
                 .contentShape(Rectangle())
                 .onTapGesture {
