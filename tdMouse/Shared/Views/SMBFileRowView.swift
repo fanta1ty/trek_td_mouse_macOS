@@ -1,5 +1,5 @@
 //
-//  SmbFileRowView.swift
+//  SMBFileRowView.swift
 //  tdMouse
 //
 //  Created by mobile on 15/3/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SMBClient
 
-struct SmbFileRowView: View {
+struct SMBFileRowView: View {
     @ObservedObject var viewModel: FileTransferViewModel
     @Environment(\.colorScheme) private var colorScheme
     

@@ -49,6 +49,8 @@
 				"ViewModels/FileTransfer/FileTransferViewModel+DirectoryOperations.swift",
 				"ViewModels/FileTransfer/FileTransferViewModel+FileOperations.swift",
 				"ViewModels/FileTransfer/FileTransferViewModel+TransferStats.swift",
+				Views/LocalFileRowView.swift,
+				Views/SMBFileRowView.swift,
 			);
 			target = B2BEBD992D967AF5006598A7 /* tdMouse (iOS) */;
 		};

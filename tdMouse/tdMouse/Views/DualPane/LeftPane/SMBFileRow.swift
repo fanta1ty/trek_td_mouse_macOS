@@ -17,7 +17,7 @@ struct SMBFileRow: View {
     let onFileTap: (File) -> Void
     
     var body: some View {
-        SmbFileRowView(viewModel: viewModel, file: file)
+        SMBFileRowView(viewModel: viewModel, file: file)
             .contentShape(Rectangle())
             .onTapGesture(count: 2) {
                 onFileTap(file)

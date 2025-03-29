@@ -182,37 +182,3 @@ struct LocalFileRowView: View {
         return previewableExtensions.contains(fileExtension)
     }
 }
-
-struct LocalFileRowView_Previews: PreviewProvider {
-    static var previews: some View {
-        Group {
-            LocalFileRowView(
-                viewModel: LocalFileViewModel(),
-                file: .init(
-                    name: "Document.pdf",
-                    url: .homeDirectory,
-                    isDirectory: false,
-                    size: 1024 * 1024,
-                    modificationDate: Date()
-                )
-            )
-            .previewLayout(.sizeThatFits)
-            .padding()
-            .preferredColorScheme(.light)
-            
-            LocalFileRowView(
-                viewModel: LocalFileViewModel(),
-                file: .init(
-                    name: "Images",
-                    url: .homeDirectory,
-                    isDirectory: true,
-                    size: 0,
-                    modificationDate: Date()
-                )
-            )
-            .previewLayout(.sizeThatFits)
-            .padding()
-            .preferredColorScheme(.dark)
-        }
-    }
-}
