@@ -115,7 +115,6 @@ struct DualPaneFileTransferView: View {
         .sheet(isPresented: $isShowingPreview) {
             if let fileInfo = previewFile {
                 UniversalFilePreviewView(
-                    isShowingPreview: $isShowingPreview,
                     title: fileInfo.name,
                     fileProvider: fileInfo.fileProvider,
                     fileExtension: fileInfo.fileExtension

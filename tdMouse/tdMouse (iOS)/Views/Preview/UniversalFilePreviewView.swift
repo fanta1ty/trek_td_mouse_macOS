@@ -6,13 +6,13 @@
 //
 
 import SwiftUI
-import Foundation
+import UIKit
+import PDFKit
+import AVKit
+import WebKit
 
 struct UniversalFilePreviewView: View {
     @Environment(\.dismiss) private var dismiss
-    
-    @Binding var isShowingPreview: Bool
-    
     @State private var previewURL: URL?
     @State private var isLoading = true
     @State private var error: String?
@@ -22,77 +22,71 @@ struct UniversalFilePreviewView: View {
     let fileExtension: String
     
     private var fileType: FileType {
-        Helpers.determineFileType(fileExtension: fileExtension.lowercased())
+        return Helpers.determineFileType(fileExtension: fileExtension.lowercased())
     }
     
     var body: some View {
-        VStack {
-            // Header
-            HStack {
-                Text(title)
-                    .font(.headline)
-                
-                Spacer()
-                
+        NavigationView {
+            VStack {
+                if isLoading {
+                    ProgressView("Loading file...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let error = error {
+                    VStack {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 48))
+                            .foregroundColor(.orange)
+                        Text("Error loading file")
+                            .font(.headline)
+                            .padding(.top)
+                        Text(error)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let url = previewURL {
+                    Group {
+                        switch fileType {
+                        case .pdf:
+                            PDFPreviewView(url: url)
+                        case .image:
+                            ImagePreviewView(url: url)
+                        case .text:
+                            TextPreviewView(url: url)
+                        case .video:
+                            VideoPreviewView(url: url)
+                        case .audio:
+                            AudioPreviewView(url: url)
+                        case .web:
+                            WebPreviewView(url: url)
+                        case .other:
+                            UnsupportedFileView(fileExtension: fileExtension)
+                        }
+                    }
+                    .ignoresSafeArea(edges: [.bottom])
+                }
+            }
+            .navigationBarTitle(title, displayMode: .inline)
+            .navigationBarItems(trailing:
                 Button(action: {
                     dismiss()
-                }, label: {
+                }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.gray)
-                })
-                .buttonStyle(.plain)
-            }
-            .padding()
-            
-            if isLoading {
-                ProgressView("Loading file...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let error {
-                VStack {
-                    Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 48))
-                        .foregroundColor(.orange)
-                    Text("Error loading file")
-                        .font(.headline)
-                        .padding(.top)
-                    Text(error)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding()
+                        .foregroundColor(.gray)
+                        .font(.system(size: 22))
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let url = previewURL {
-                Group {
-                    switch fileType {
-                    case .pdf:
-                        PDFPreviewView(url: url)
-                    case .image:
-                        ImagePreviewView(url: url)
-                    case .text:
-                        TextPreviewView(url: url)
-                    case .video:
-                        VideoPreviewView(url: url)
-                    case .audio:
-                        AudioPreviewView(url: url)
-                    case .web:
-                        WebPreviewView(url: url)
-                    case .other:
-                        UnsupportedFileView(fileExtension: fileExtension)
-                    }
-                }
-                .edgesIgnoringSafeArea(.all)
-            }
+            )
         }
-        .frame(width: 800, height: 600)
+        .navigationViewStyle(StackNavigationViewStyle())
         .onAppear {
             loadFile()
         }
         .onDisappear {
+            // Clean up temp file when view disappears
             if let url = previewURL {
                 try? FileManager.default.removeItem(at: url)
             }
-            
-            isShowingPreview = false
         }
     }
     
@@ -101,12 +95,15 @@ struct UniversalFilePreviewView: View {
             do {
                 isLoading = true
                 
+                // Get the file data from the provider
                 let data = try await fileProvider()
                 
+                // Create a temporary file for the preview
                 let tempURL = FileManager.default.temporaryDirectory
                     .appendingPathComponent(UUID().uuidString)
                     .appendingPathExtension(fileExtension)
                 
+                // Write the data to the temporary file
                 try data.write(to: tempURL)
                 
                 await MainActor.run {
@@ -120,16 +117,5 @@ struct UniversalFilePreviewView: View {
                 }
             }
         }
-    }
-}
-
-struct UniversalFilePreviewView_Preview: PreviewProvider {
-    static var previews: some View {
-        UniversalFilePreviewView(
-            isShowingPreview: .constant(true),
-            title: "Preview",
-            fileProvider: { .init() },
-            fileExtension: "jpg"
-        )
     }
 }
