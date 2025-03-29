@@ -26,6 +26,8 @@ struct DualPaneFileTransferView: View {
     @State private var previewingFile: Bool = false
     @State private var previewingSmbFile: File?
     @State private var previewingLocalFile: LocalFile?
+    @State private var isShowingPreview = false
+    @State private var previewFile: PreviewFileInfo? = nil
     
     var body: some View {
         VStack(spacing: 0) {
@@ -53,7 +55,8 @@ struct DualPaneFileTransferView: View {
                     isConnectSheetPresented: $isConnectSheetPresented,
                     isDraggingLocalToSmb: $isDraggingLocalToSmb,
                     previewingFile: $previewingFile,
-                    transferProgress: $transferProgress
+                    transferProgress: $transferProgress,
+                    onDownloadFile: downloadFile
                 )
             }
             .frame(height: UIScreen.main.bounds.height * 0.45)
@@ -80,7 +83,8 @@ struct DualPaneFileTransferView: View {
                     previewingFile: $previewingFile,
                     transferProgress: $transferProgress,
                     draggedSmbFile: $draggedSmbFile,
-                    isDraggingSmbToLocal: $isDraggingSmbToLocal
+                    isDraggingSmbToLocal: $isDraggingSmbToLocal,
+                    onUploadFile: uploadFile
                 )
             }
             .frame(maxHeight: .infinity)
@@ -102,8 +106,19 @@ struct DualPaneFileTransferView: View {
         .sheet(isPresented: $smbViewModel.showTransferSummary) {
             if let stats = smbViewModel.lastTransferStats {
                 TransferSummaryView(
+                    viewModel: smbViewModel,
                     stats: stats,
                     isPresented: $smbViewModel.showTransferSummary
+                )
+            }
+        }
+        .sheet(isPresented: $isShowingPreview) {
+            if let fileInfo = previewFile {
+                UniversalFilePreviewView(
+                    isShowingPreview: $isShowingPreview,
+                    title: fileInfo.name,
+                    fileProvider: fileInfo.fileProvider,
+                    fileExtension: fileInfo.fileExtension
                 )
             }
         }
@@ -125,6 +140,47 @@ struct DualPaneFileTransferView: View {
         }
         .onAppear {
             localViewModel.initialize()
+            
+            // Set up notification handlers for file operations
+            NotificationCenter.default.addObserver(
+                forName: Notification.Name("PreviewSMBFile"),
+                object: nil,
+                queue: .main
+            ) { notification in
+                if let file = notification.object as? File {
+                    showSmbFilePreview(file)
+                }
+            }
+            
+            NotificationCenter.default.addObserver(
+                forName: Notification.Name("PreviewLocalFile"),
+                object: nil,
+                queue: .main
+            ) { notification in
+                if let file = notification.object as? LocalFile {
+                    showLocalFilePreview(file)
+                }
+            }
+            
+            NotificationCenter.default.addObserver(
+                forName: Notification.Name("DownloadSMBFile"),
+                object: nil,
+                queue: .main
+            ) { notification in
+                if let file = notification.object as? File {
+                    downloadFile(file)
+                }
+            }
+            
+            NotificationCenter.default.addObserver(
+                forName: Notification.Name("UploadLocalFile"),
+                object: nil,
+                queue: .main
+            ) { notification in
+                if let file = notification.object as? LocalFile {
+                    uploadFile(file)
+                }
+            }
         }
     }
     
@@ -173,8 +229,78 @@ struct DualPaneFileTransferView: View {
     }
 }
 
-struct DualPaneFileTransferView_Preview: PreviewProvider {
-    static var previews: some View {
-        DualPaneFileTransferView()
+// MARK: - Private Functions
+extension DualPaneFileTransferView {
+    private func showSmbFilePreview(_ file: File) {
+        previewFile = PreviewFileInfo(
+            name: file.name,
+            fileProvider: {
+                return try await smbViewModel.downloadFile(fileName: file.name, trackTransfer: false)
+            },
+            fileExtension: file.name.components(separatedBy: ".").last ?? ""
+        )
+        isShowingPreview = true
+    }
+
+    private func showLocalFilePreview(_ file: LocalFile) {
+        previewFile = PreviewFileInfo(
+            name: file.name,
+            fileProvider: {
+                return try Data(contentsOf: file.url)
+            },
+            fileExtension: file.name.components(separatedBy: ".").last ?? ""
+        )
+        isShowingPreview = true
+    }
+    
+    private func downloadFile(_ file: File) {
+        // Download to current local directory
+        let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(file.name)
+        
+        Task {
+            transferManager.activeTransfer = .toLocal
+            transferManager.currentTransferItem = file.name
+            transferProgress = 0
+            
+            do {
+                let data = try await smbViewModel.downloadFile(fileName: file.name)
+                try data.write(to: localURL)
+                
+                // Refresh local files
+                localViewModel.refreshFiles()
+                transferProgress = 1.0
+                
+                // Give time for UI to show completion before removing status
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                transferManager.activeTransfer = nil
+                transferManager.currentTransferItem = ""
+            } catch {
+                print("Download failed: \(error)")
+                transferManager.activeTransfer = nil
+                transferManager.currentTransferItem = ""
+            }
+        }
+    }
+    
+    private func uploadFile(_ file: LocalFile) {
+        Task {
+            transferManager.activeTransfer = .toRemote
+            transferManager.currentTransferItem = file.name
+            transferProgress = 0
+            
+            do {
+                try await smbViewModel.uploadLocalFile(url: file.url)
+                transferProgress = 1.0
+                
+                // Give time for UI to show completion before removing status
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                transferManager.activeTransfer = nil
+                transferManager.currentTransferItem = ""
+            } catch {
+                print("Upload error: \(error)")
+                transferManager.activeTransfer = nil
+                transferManager.currentTransferItem = ""
+            }
+        }
     }
 }

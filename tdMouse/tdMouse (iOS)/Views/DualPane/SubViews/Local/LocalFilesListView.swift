@@ -16,6 +16,8 @@ struct LocalFilesListView: View {
     @Binding var previewingFile: Bool
     @Binding var transferProgress: Double
     
+    let onUploadFile: (_ file: LocalFile) -> Void
+    
     var body: some View {
         List {
             ForEach(viewModel.files, id: \.id) { file in
@@ -49,7 +51,7 @@ extension LocalFilesListView {
             if Helpers.isPreviewableFileType(file.name) {
                 showLocalFilePreview(file)
             } else if smbViewModel.connectionState == .connected {
-                uploadFile(file)
+                onUploadFile(file)
             }
         }
     }
@@ -57,27 +59,5 @@ extension LocalFilesListView {
     private func showLocalFilePreview(_ file: LocalFile) {
         previewingLocalFile = file
         previewingFile = true
-    }
-    
-    private func uploadFile(_ file: LocalFile) {
-        Task {
-            transferManager.activeTransfer = .toRemote
-            transferManager.currentTransferItem = file.name
-            transferProgress = 0
-            
-            do {
-                try await smbViewModel.uploadLocalFile(url: file.url)
-                transferProgress = 1.0
-                
-                // Give time for UI to show completion before removing status
-                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-                transferManager.activeTransfer = nil
-                transferManager.currentTransferItem = ""
-            } catch {
-                print("Upload error: \(error)")
-                transferManager.activeTransfer = nil
-                transferManager.currentTransferItem = ""
-            }
-        }
     }
 }

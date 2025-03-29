@@ -9,6 +9,8 @@ import SwiftUI
 
 /// View to show transfer statistics after completion
 struct TransferSummaryView: View {
+    @ObservedObject var viewModel: FileTransferViewModel
+    
     let stats: TransferStats
     @Binding var isPresented: Bool
     
@@ -59,6 +61,7 @@ struct TransferSummaryView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         isPresented = false
+                        viewModel.showTransferSummary = false
                     }
                 }
             }

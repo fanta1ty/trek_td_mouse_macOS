@@ -21,6 +21,8 @@ struct LocalFilesListContainerView: View {
     @Binding var draggedSmbFile: File?
     @Binding var isDraggingSmbToLocal: Bool
     
+    let onUploadFile: (_ file: LocalFile) -> Void
+    
     var body: some View {
         ZStack {
             if viewModel.isLoading {
@@ -39,7 +41,8 @@ struct LocalFilesListContainerView: View {
                     transferManager: transferManager,
                     previewingLocalFile: $previewingLocalFile,
                     previewingFile: $previewingFile,
-                    transferProgress: $transferProgress
+                    transferProgress: $transferProgress,
+                    onUploadFile: onUploadFile
                 )
             }
         }
@@ -102,7 +105,8 @@ struct LocalFilesListContainerView_Previews: PreviewProvider {
             previewingFile: .constant(true),
             transferProgress: .constant(0),
             draggedSmbFile: .constant(nil),
-            isDraggingSmbToLocal: .constant(true)
+            isDraggingSmbToLocal: .constant(true),
+            onUploadFile: { _ in }
         )
     }
 }

@@ -19,10 +19,12 @@ struct SMBFilesListView: View {
     @Binding var previewingLocalFile: LocalFile?
     @Binding var transferProgress: Double
     
+    let onDownloadFile: (_ file: File) -> Void
+    
     var body: some View {
         List {
             ForEach(viewModel.files, id: \.name) { file in
-                SMBFileRowView(viewModel: viewModel, file: file)
+                SMBFileRowView(file: file, viewModel: viewModel)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         handleSmbFileTap(file)
@@ -36,7 +38,7 @@ struct SMBFilesListView: View {
                             previewingSmbFile: $previewingSmbFile,
                             previewingLocalFile: $previewingLocalFile,
                             transferProgress: $transferProgress,
-                            onDownloadFile: downloadFile,
+                            onDownloadFile: onDownloadFile,
                             onHandleSmbFileTap: handleSmbFileTap,
                             onShowSmbFilePreview: showSmbFilePreview,
                             file: file
@@ -65,36 +67,7 @@ extension SMBFilesListView {
             if Helpers.isPreviewableFileType(file.name) {
                 showSmbFilePreview(file)
             } else {
-                downloadFile(file)
-            }
-        }
-    }
-    
-    private func downloadFile(_ file: File) {
-        // Download to current local directory
-        let localURL = localViewModel.currentDirectoryURL.appendingPathComponent(file.name)
-        
-        Task {
-            transferManager.activeTransfer = .toLocal
-            transferManager.currentTransferItem = file.name
-            transferProgress = 0
-            
-            do {
-                let data = try await viewModel.downloadFile(fileName: file.name)
-                try data.write(to: localURL)
-                
-                // Refresh local files
-                localViewModel.refreshFiles()
-                transferProgress = 1.0
-                
-                // Give time for UI to show completion before removing status
-                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
-                transferManager.activeTransfer = nil
-                transferManager.currentTransferItem = ""
-            } catch {
-                print("Download failed: \(error)")
-                transferManager.activeTransfer = nil
-                transferManager.currentTransferItem = ""
+                onDownloadFile(file)
             }
         }
     }

@@ -23,6 +23,8 @@ struct SMBFilesListContainerView: View {
     @Binding var previewingFile: Bool
     @Binding var transferProgress: Double
     
+    let onDownloadFile: (_ file: File) -> Void
+    
     var body: some View {
         ZStack {
             if viewModel.connectionState == .connected {
@@ -40,7 +42,8 @@ struct SMBFilesListContainerView: View {
                         previewingFile: $previewingFile,
                         previewingSmbFile: $previewingSmbFile,
                         previewingLocalFile: $previewingLocalFile,
-                        transferProgress: $transferProgress
+                        transferProgress: $transferProgress,
+                        onDownloadFile: onDownloadFile
                     )
                 }
             } else {
