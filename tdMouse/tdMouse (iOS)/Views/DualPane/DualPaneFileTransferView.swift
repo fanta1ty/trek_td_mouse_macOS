@@ -28,6 +28,8 @@ struct DualPaneFileTransferView: View {
     @State private var previewingLocalFile: LocalFile?
     @State private var isShowingPreview = false
     @State private var previewFile: PreviewFileInfo? = nil
+    @State private var preloadedData: Data?
+    @State private var isPreloadingFile = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -119,6 +121,13 @@ struct DualPaneFileTransferView: View {
                     fileProvider: fileInfo.fileProvider,
                     fileExtension: fileInfo.fileExtension
                 )
+            } else {
+                Text("Please try again later.")
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            isShowingPreview = false
+                        }
+                    }
             }
         }
         .alert("SMB Error", isPresented: .init(
@@ -238,6 +247,7 @@ extension DualPaneFileTransferView {
             },
             fileExtension: file.name.components(separatedBy: ".").last ?? ""
         )
+        
         isShowingPreview = true
     }
 
@@ -249,6 +259,7 @@ extension DualPaneFileTransferView {
             },
             fileExtension: file.name.components(separatedBy: ".").last ?? ""
         )
+        
         isShowingPreview = true
     }
     

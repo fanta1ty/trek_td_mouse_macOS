@@ -73,7 +73,9 @@ extension SMBFilesListView {
     }
     
     private func showSmbFilePreview(_ file: File) {
-        previewingSmbFile = file
-        previewingFile = true
+        NotificationCenter.default.post(
+            name: Notification.Name("PreviewSMBFile"),
+            object: file
+        )
     }
 }

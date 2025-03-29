@@ -91,9 +91,12 @@ struct UniversalFilePreviewView: View {
     }
     
     private func loadFile() {
+        isLoading = true
+        
         Task {
             do {
-                isLoading = true
+                // Add artificial delay to ensure view is fully initialized
+                try await Task.sleep(nanoseconds: 300_000_000) // 300ms delay
                 
                 // Get the file data from the provider
                 let data = try await fileProvider()
