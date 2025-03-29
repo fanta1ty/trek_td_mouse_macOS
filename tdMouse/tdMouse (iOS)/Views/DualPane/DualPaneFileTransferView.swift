@@ -92,6 +92,37 @@ struct DualPaneFileTransferView: View {
                 isPresented: $isConnectSheetPresented
             )
         })
+        .sheet(isPresented: $isCreateFolderSheetPresented) {
+            CreateFolderSheet(
+                viewModel: smbViewModel,
+                isPresented: $isCreateFolderSheetPresented,
+                folderName: $newFolderName
+            )
+        }
+        .sheet(isPresented: $smbViewModel.showTransferSummary) {
+            if let stats = smbViewModel.lastTransferStats {
+                TransferSummaryView(
+                    stats: stats,
+                    isPresented: $smbViewModel.showTransferSummary
+                )
+            }
+        }
+        .alert("SMB Error", isPresented: .init(
+            get: { !smbViewModel.errorMessage.isEmpty },
+            set: { if !$0 { smbViewModel.errorMessage = "" } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(smbViewModel.errorMessage)
+        }
+        .alert("Local Error", isPresented: .init(
+            get: { !localViewModel.errorMessage.isEmpty },
+            set: { if !$0 { localViewModel.errorMessage = "" } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(localViewModel.errorMessage)
+        }
         .onAppear {
             localViewModel.initialize()
         }

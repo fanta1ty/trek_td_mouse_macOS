@@ -269,7 +269,10 @@ struct TransferSummaryView: View {
                 .padding(.bottom, 4)
             
             if !stats.speedSamples.isEmpty {
-                SpeedChartView(speedSamples: stats.speedSamples, maxSpeed: stats.maxSpeed * 1.1)
+                SpeedChartView(
+                    speedSamples: stats.speedSamples,
+                    maxSpeed: stats.maxSpeed * 1.1
+                )
                     .frame(height: 150)
                     .padding(.top, 8)
             } else {

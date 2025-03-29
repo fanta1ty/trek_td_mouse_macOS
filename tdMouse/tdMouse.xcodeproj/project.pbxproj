@@ -49,6 +49,7 @@
 				"ViewModels/FileTransfer/FileTransferViewModel+DirectoryOperations.swift",
 				"ViewModels/FileTransfer/FileTransferViewModel+FileOperations.swift",
 				"ViewModels/FileTransfer/FileTransferViewModel+TransferStats.swift",
+				Views/CreateFolderSheet.swift,
 				Views/LocalFileRowView.swift,
 				Views/SMBFileRowView.swift,
 			);
