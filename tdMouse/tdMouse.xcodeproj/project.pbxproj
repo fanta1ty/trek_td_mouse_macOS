@@ -18,10 +18,49 @@
 		B2B1B28D2D70D57B00AE20C3 /* tdMouse.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tdMouse.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		75C2E9E22D99336C000183E1 /* Exceptions for "Shared" folder in "tdMouse_ios" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Helpers/Extensions/File+Ext.swift",
+				"Helpers/Extensions/LocalFile+Ext.swift",
+				"Helpers/Extensions/SMBClient+Ext.swift",
+				"Helpers/Extensions/URL+Ext.swift",
+				Helpers/Helpers.swift,
+				Models/Enums/ConnectionState.swift,
+				Models/Enums/FileType.swift,
+				Models/Enums/TransferDirection.swift,
+				Models/Enums/TransferError.swift,
+				Models/Enums/TransferOperation.swift,
+				Models/FileItem.swift,
+				Models/LocalFile.swift,
+				Models/SavedConnection.swift,
+				Models/SMBServerCredentials.swift,
+				Models/Transfer/TransferCheckpoint.swift,
+				Models/Transfer/TransferStats.swift,
+				Models/Transfer/TransferTask.swift,
+				ViewModels/FileTransfer/FileTransferViewModel.swift,
+				"ViewModels/FileTransfer/FileTransferViewModel+Connection.swift",
+				"ViewModels/FileTransfer/FileTransferViewModel+DirectoryOperations.swift",
+				"ViewModels/FileTransfer/FileTransferViewModel+FileOperations.swift",
+				"ViewModels/FileTransfer/FileTransferViewModel+TransferStats.swift",
+			);
+			target = 75C2E9C02D99225B000183E1 /* tdMouse_ios */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		75C2E9C22D99225B000183E1 /* tdMouse_ios */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = tdMouse_ios;
+			sourceTree = "<group>";
+		};
+		75C2E9DB2D993354000183E1 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				75C2E9E22D99336C000183E1 /* Exceptions for "Shared" folder in "tdMouse_ios" target */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		B2B1B28F2D70D57B00AE20C3 /* tdMouse */ = {
@@ -56,6 +95,7 @@
 		B2B1B2842D70D57B00AE20C3 = {
 			isa = PBXGroup;
 			children = (
+				75C2E9DB2D993354000183E1 /* Shared */,
 				B2B1B28F2D70D57B00AE20C3 /* tdMouse */,
 				75C2E9C22D99225B000183E1 /* tdMouse_ios */,
 				B2B1B28E2D70D57B00AE20C3 /* Products */,
@@ -110,6 +150,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				75C2E9DB2D993354000183E1 /* Shared */,
 				B2B1B28F2D70D57B00AE20C3 /* tdMouse */,
 			);
 			name = tdMouse;
