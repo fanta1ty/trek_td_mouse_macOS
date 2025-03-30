@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		75C2E9D12D9922AC000183E1 /* SMBClient in Frameworks */ = {isa = PBXBuildFile; productRef = 75C2E9D02D9922AC000183E1 /* SMBClient */; };
+		75C2E9D32D9922B3000183E1 /* SMBClient in Frameworks */ = {isa = PBXBuildFile; productRef = 75C2E9D22D9922B3000183E1 /* SMBClient */; };
 		B2B1B2A12D70D5FE00AE20C3 /* FlyingFox in Frameworks */ = {isa = PBXBuildFile; productRef = B2B1B2A02D70D5FE00AE20C3 /* FlyingFox */; };
 		B2B1B2A32D70D5FE00AE20C3 /* FlyingSocks in Frameworks */ = {isa = PBXBuildFile; productRef = B2B1B2A22D70D5FE00AE20C3 /* FlyingSocks */; };
-		B2B1B2A62D70D60F00AE20C3 /* SMBClient in Frameworks */ = {isa = PBXBuildFile; productRef = B2B1B2A52D70D60F00AE20C3 /* SMBClient */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				75C2E9D32D9922B3000183E1 /* SMBClient in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -42,7 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B2B1B2A62D70D60F00AE20C3 /* SMBClient in Frameworks */,
+				75C2E9D12D9922AC000183E1 /* SMBClient in Frameworks */,
 				B2B1B2A12D70D5FE00AE20C3 /* FlyingFox in Frameworks */,
 				B2B1B2A32D70D5FE00AE20C3 /* FlyingSocks in Frameworks */,
 			);
@@ -89,6 +91,7 @@
 			);
 			name = tdMouse_ios;
 			packageProductDependencies = (
+				75C2E9D22D9922B3000183E1 /* SMBClient */,
 			);
 			productName = tdMouse_ios;
 			productReference = 75C2E9C12D99225B000183E1 /* tdMouse_ios.app */;
@@ -113,7 +116,7 @@
 			packageProductDependencies = (
 				B2B1B2A02D70D5FE00AE20C3 /* FlyingFox */,
 				B2B1B2A22D70D5FE00AE20C3 /* FlyingSocks */,
-				B2B1B2A52D70D60F00AE20C3 /* SMBClient */,
+				75C2E9D02D9922AC000183E1 /* SMBClient */,
 			);
 			productName = tdMouse;
 			productReference = B2B1B28D2D70D57B00AE20C3 /* tdMouse.app */;
@@ -149,7 +152,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				B2B1B29F2D70D5FE00AE20C3 /* XCRemoteSwiftPackageReference "FlyingFox" */,
-				B2B1B2A42D70D60F00AE20C3 /* XCRemoteSwiftPackageReference "SMBClient" */,
+				75C2E9CF2D9922AC000183E1 /* XCRemoteSwiftPackageReference "SMBClient" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B2B1B28E2D70D57B00AE20C3 /* Products */;
@@ -472,6 +475,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		75C2E9CF2D9922AC000183E1 /* XCRemoteSwiftPackageReference "SMBClient" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kishikawakatsumi/SMBClient.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.1;
+			};
+		};
 		B2B1B29F2D70D5FE00AE20C3 /* XCRemoteSwiftPackageReference "FlyingFox" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/swhitty/FlyingFox.git";
@@ -480,17 +491,19 @@
 				minimumVersion = 0.21.0;
 			};
 		};
-		B2B1B2A42D70D60F00AE20C3 /* XCRemoteSwiftPackageReference "SMBClient" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kishikawakatsumi/SMBClient.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.1;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		75C2E9D02D9922AC000183E1 /* SMBClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 75C2E9CF2D9922AC000183E1 /* XCRemoteSwiftPackageReference "SMBClient" */;
+			productName = SMBClient;
+		};
+		75C2E9D22D9922B3000183E1 /* SMBClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 75C2E9CF2D9922AC000183E1 /* XCRemoteSwiftPackageReference "SMBClient" */;
+			productName = SMBClient;
+		};
 		B2B1B2A02D70D5FE00AE20C3 /* FlyingFox */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = B2B1B29F2D70D5FE00AE20C3 /* XCRemoteSwiftPackageReference "FlyingFox" */;
@@ -500,11 +513,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B2B1B29F2D70D5FE00AE20C3 /* XCRemoteSwiftPackageReference "FlyingFox" */;
 			productName = FlyingSocks;
-		};
-		B2B1B2A52D70D60F00AE20C3 /* SMBClient */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B2B1B2A42D70D60F00AE20C3 /* XCRemoteSwiftPackageReference "SMBClient" */;
-			productName = SMBClient;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
