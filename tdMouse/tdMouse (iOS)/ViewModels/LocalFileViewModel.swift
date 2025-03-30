@@ -37,13 +37,6 @@ class LocalFileViewModel: ObservableObject {
         self.currentDirectoryURL = directory
     }
     
-    // MARK: - Public Methods
-    
-    /// Initialize the view model and load initial files
-    func initialize() {
-        refreshFiles()
-    }
-    
     /// Refresh the file listing for the current directory
     func refreshFiles() {
         Task {
@@ -148,15 +141,6 @@ class LocalFileViewModel: ObservableObject {
             refreshFiles()
         } else {
             errorMessage = "Selected location is not a directory"
-        }
-    }
-    
-    /// Open a directory picker to select a new location
-    func selectDirectory() {
-        let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        
-        Task {
-            await loadFiles(from: documentDirectory)
         }
     }
     

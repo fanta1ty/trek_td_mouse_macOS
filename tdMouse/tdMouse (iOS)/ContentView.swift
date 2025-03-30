@@ -8,8 +8,17 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var transferManager = TransferManager()
+    @StateObject private var smbViewModel = FileTransferViewModel()
+    @StateObject private var localViewModel = LocalFileViewModel()
+    
     var body: some View {
-        DualPaneFileTransferView()
+        VStack {
+            SingleScreenFileTransferView()
+                .environmentObject(transferManager)
+                .environmentObject(smbViewModel)
+                .environmentObject(localViewModel)
+        }
     }
 }
 
