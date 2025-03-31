@@ -22,6 +22,19 @@ struct DualPaneFileView: View {
             )
             .padding(.vertical, 8)
             .background(Color(UIColor.secondarySystemBackground))
+            
+            // Content panes
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        Text("TD Mouse Files")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 8)
+                            .padding(.leading)
+                    }
+                }
+            }
         }
     }
 }
