@@ -36,6 +36,12 @@ struct DualPaneFileView: View {
                 }
             }
         }
+        .sheet(isPresented: $isConnectSheetPresented) {
+            NavigationView {
+                ConnectionSheetView(isPresented: $isConnectSheetPresented)
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+        }
     }
 }
 
