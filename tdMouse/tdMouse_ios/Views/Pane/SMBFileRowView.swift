@@ -21,7 +21,17 @@ struct SMBFileRowView: View {
     let onTap: (File) -> Void
     
     var body: some View {
-        Text(file.name)
+        Button {
+            onTap(file)
+        } label: {
+            HStack(spacing: 12) {
+                // File icon with background
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6)
+                }
+            }
+        }
+
     }
 }
 
