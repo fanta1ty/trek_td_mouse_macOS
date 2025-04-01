@@ -40,6 +40,7 @@ struct SMBPane: View {
                             Image(systemName: "arrow.clockwise")
                         }
                     }
+                    .padding(.horizontal, 4)
                 }
             }
             .padding(.vertical, 4)
@@ -90,7 +91,7 @@ struct SMBPane: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.blue.opacity(0.5), lineWidth: 1)
+                .stroke(Color.blue.opacity(0.5), lineWidth: 0.5 )
         )
         .padding(2)
         .onTapGesture {
