@@ -13,6 +13,7 @@ struct DualPaneFileView: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
     
     @State private var isConnectSheetPresented: Bool = false
+    @State private var activePaneIndex: Int = 0
     
     var body: some View {
         VStack(spacing: 0) {
@@ -32,7 +33,12 @@ struct DualPaneFileView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.top, 8)
                             .padding(.leading)
+                        
+                        SMBPane(activePaneIndex: $activePaneIndex)
+                            .frame(height: geometry.size.height * 0.45)
+                            .padding(.horizontal)
                     }
+                    .padding(.bottom)
                 }
             }
         }
