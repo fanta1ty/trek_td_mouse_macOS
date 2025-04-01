@@ -12,7 +12,9 @@ import UniformTypeIdentifiers
 struct DualPaneFileView: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
     
+    @State private var currentPreviewFile: PreviewFileInfo?
     @State private var isConnectSheetPresented: Bool = false
+    @State private var showPreviewSheet: Bool = false
     @State private var activePaneIndex: Int = 0
     
     var body: some View {
@@ -33,9 +35,13 @@ struct DualPaneFileView: View {
                         .padding(.top, 8)
                         .padding(.leading)
                     
-                    SMBPane(activePaneIndex: $activePaneIndex)
-                        .frame(height: geometry.size.height * 0.45)
-                        .padding(.horizontal)
+                    SMBPane(
+                        currentPreviewFile: $currentPreviewFile,
+                        activePaneIndex: $activePaneIndex,
+                        showPreviewSheet: $showPreviewSheet
+                    )
+                    .frame(height: geometry.size.height * 0.45)
+                    .padding(.horizontal)
                 }
                 .padding(.bottom)
             }
@@ -44,6 +50,15 @@ struct DualPaneFileView: View {
             NavigationView {
                 ConnectionSheetView(isPresented: $isConnectSheetPresented)
                     .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+        .sheet(isPresented: $showPreviewSheet) {
+            if let fileInfo = currentPreviewFile {
+                NavigationView {
+                    
+                }
+                .navigationTitle("Preview")
+                .navigationBarTitleDisplayMode(.inline)
             }
         }
     }
