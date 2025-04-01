@@ -24,13 +24,57 @@ struct SMBFileRowView: View {
         Button {
             onTap(file)
         } label: {
-            HStack(spacing: 12) {
-                // File icon with background
-                ZStack {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(fileColor.opacity(0.15))
-                        .frame(width: 36, height: 36)
+            VStack(alignment: .leading) {
+                HStack(spacing: 12) {
+                    // File icon with background
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(file.fileColor().opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        
+                        Image(systemName: fileIcon)
+                            .font(.system(size: 18))
+                            .foregroundStyle(file.fileColor())
+                    }
+                    
+                    // File Info
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(file.name)
+                            .font(.system(size: 16))
+                            .lineLimit(1)
+                            .foregroundStyle(.primary)
+                        
+                        HStack {
+                            if !viewModel.isDirectory(file) {
+                                Text(Helpers.formatFileSize(file.size))
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Text(Helpers.formatDate(file.creationTime))
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Action Button
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(BorderlessButtonStyle())
                 }
+                .padding(8)
+//                .background(Color(UIColor.systemBackground))
+                .contentShape(Rectangle())
+                
+                Divider()
+                    .frame(height: 1)
+                    .padding(.horizontal, 4)
             }
         }
         .buttonStyle(PlainButtonStyle())
@@ -40,31 +84,5 @@ struct SMBFileRowView: View {
 // MARK: - Private Functions
 
 extension SMBFileRowView {
-    private var fileColor: Color {
-        if viewModel.isDirectory(file) {
-            return .blue
-        } else {
-            let ext = file.name.components(separatedBy: ".").last?.lowercased() ?? ""
-            switch ext {
-            case "pdf":
-                return .red
-            case "jpg", "jpeg", "png", "gif", "heic":
-                return .green
-            case "mp3", "wav", "m4a":
-                return .pink
-            case "mp4", "mov", "avi":
-                return .purple
-            case "doc", "docx":
-                return .blue
-            case "xls", "xlsx":
-                return .green
-            case "ppt", "pptx":
-                return .orange
-            case "zip", "rar", "7z":
-                return .gray
-            default:
-                return .secondary
-            }
-        }
-    }
+    
 }
