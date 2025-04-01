@@ -40,7 +40,7 @@ struct ShareSelectionView: View {
                                 .imageScale(.large)
                             
                             Text(share)
-                                .font(.headline)
+                                .font(.system(size: 16))
                             
                             Spacer()
                             
