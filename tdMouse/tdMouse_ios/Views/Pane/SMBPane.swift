@@ -91,7 +91,7 @@ struct SMBPane: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.blue.opacity(0.5), lineWidth: 0.5 )
+                .stroke(Color.blue.opacity(0.5), lineWidth: activePaneIndex == 0 ? 0.5 : 0)
         )
         .padding(2)
         .onTapGesture {
@@ -102,7 +102,11 @@ struct SMBPane: View {
 
 extension SMBPane {
     private func handleSMBFileTap(_ file: File) {
-        
+        if viewModel.isDirectory(file) {
+            Task {
+                try await viewModel.navigateToDirectory(file.name)
+            }
+        }
     }
 }
 
