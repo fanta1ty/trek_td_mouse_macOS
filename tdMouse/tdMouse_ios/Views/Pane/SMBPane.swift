@@ -11,7 +11,9 @@ import SMBClient
 struct SMBPane: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
     
+    @Binding var currentPreviewFile: PreviewFileInfo?
     @Binding var activePaneIndex: Int
+    @Binding var showPreviewSheet: Bool
     
     var body: some View {
         VStack(spacing: 0) {
@@ -106,14 +108,35 @@ extension SMBPane {
             Task {
                 try await viewModel.navigateToDirectory(file.name)
             }
+        } else if Helpers.isPreviewableFileType(file.name) {
+            previewSmbFile(file)
         }
+    }
+    
+    private func previewSmbFile(_ file: File) {
+        guard let fileExtension = file.name.components(separatedBy: ".").last else { return }
+        
+        currentPreviewFile = PreviewFileInfo(
+            title: file.name,
+            provider: {
+                try await viewModel.downloadFile(
+                    fileName: file.name,
+                    trackTransfer: false
+                )
+            },
+            extension: fileExtension
+        )
+        
+        showPreviewSheet = true
     }
 }
 
 struct SMBPane_Previews: PreviewProvider {
     static var previews: some View {
         SMBPane(
-            activePaneIndex: .constant(0)
+            currentPreviewFile: .constant(nil),
+            activePaneIndex: .constant(0),
+            showPreviewSheet: .constant(false)
         )
         .environmentObject(FileTransferViewModel())
     }
