@@ -26,20 +26,18 @@ struct DualPaneFileView: View {
             
             // Content panes
             GeometryReader { geometry in
-                ScrollView {
-                    VStack(spacing: 0) {
-                        Text("TD Mouse Files")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.top, 8)
-                            .padding(.leading)
-                        
-                        SMBPane(activePaneIndex: $activePaneIndex)
-                            .frame(height: geometry.size.height * 0.45)
-                            .padding(.horizontal)
-                    }
-                    .padding(.bottom)
+                VStack(spacing: 0) {
+                    Text("TD Mouse Files")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 8)
+                        .padding(.leading)
+                    
+                    SMBPane(activePaneIndex: $activePaneIndex)
+                        .frame(height: geometry.size.height * 0.45)
+                        .padding(.horizontal)
                 }
+                .padding(.bottom)
             }
         }
         .sheet(isPresented: $isConnectSheetPresented) {
