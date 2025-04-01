@@ -34,6 +34,7 @@
 				Models/Enums/TransferOperation.swift,
 				Models/FileItem.swift,
 				Models/LocalFile.swift,
+				Models/PreviewFileInfo.swift,
 				Models/SavedConnection.swift,
 				Models/SMBServerCredentials.swift,
 				Models/Transfer/TransferCheckpoint.swift,
