@@ -114,7 +114,7 @@ extension ConnectionSheetView {
     private func loadSavedConnections() {
         do {
             let decoder = JSONDecoder()
-            if !savedConnections.isEmpty {
+            if !savedConnectionsData.isEmpty {
                 savedConnections = try decoder.decode([SavedConnection].self, from: savedConnectionsData)
             }
         } catch {
