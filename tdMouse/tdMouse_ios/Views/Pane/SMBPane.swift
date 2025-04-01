@@ -58,9 +58,10 @@ struct SMBPane: View {
                     
                     Spacer()
                 }
+                .padding(.bottom, 4)
                 
                 // File list
-                if !viewModel.files.isEmpty {
+                if viewModel.files.isEmpty {
                     EmptyStateView(
                         systemName: "folder",
                         title: "No Files",
@@ -79,6 +80,12 @@ struct SMBPane: View {
                         }
                     }
                 }
+            } else {
+                EmptyStateView(
+                    systemName: "link.slash",
+                    title: "Not Connected",
+                    message: "Connect to a TD Mouse to view files"
+                )
             }
         }
         .background(
@@ -86,7 +93,6 @@ struct SMBPane: View {
                 .stroke(Color.blue.opacity(0.5), lineWidth: 1)
         )
         .padding(2)
-        .padding(.horizontal)
         .onTapGesture {
             activePaneIndex = 0
         }
