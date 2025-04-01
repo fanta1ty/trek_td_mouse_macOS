@@ -26,6 +26,7 @@ struct ConnectionSheetView: View {
     @State private var selectedShare: String = ""
     @State private var errorMessage: String = ""
     @State private var connectionStage: ConnectionState = .credentials
+    @State private var savedConnections: [SavedConnection] = []
     
     @AppStorage("savedConnections") private var savedConnectionsData: Data = Data()
     
@@ -35,7 +36,8 @@ struct ConnectionSheetView: View {
             CredentialsForm(
                 isConnecting: $isConnecting,
                 shouldSave: $shouldSave,
-                connectioName: $connectionName,
+                connectionName: $connectionName,
+                savedConnections: $savedConnections,
                 onDisconnect: {
                     Task { await disconnectFromServer() }
                 }
@@ -81,8 +83,9 @@ struct ConnectionSheetView: View {
                         
                     case .shareSelection:
                         Button("Done") {
-                            
+                            connectToSelectedShare()
                         }
+                        .disabled(selectedShare.isEmpty)
                     }
                 }
             }
@@ -102,6 +105,20 @@ extension ConnectionSheetView {
         
         if connectionName.isEmpty && !viewModel.credentials.host.isEmpty {
             connectionName = viewModel.currentDirectory
+        }
+        
+        // Load saved connections
+        loadSavedConnections()
+    }
+    
+    private func loadSavedConnections() {
+        do {
+            let decoder = JSONDecoder()
+            if !savedConnections.isEmpty {
+                savedConnections = try decoder.decode([SavedConnection].self, from: savedConnectionsData)
+            }
+        } catch {
+            print("Failed to load saved connections: \(error)")
         }
     }
     
