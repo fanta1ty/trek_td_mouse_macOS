@@ -12,7 +12,8 @@ struct CredentialsForm: View {
     @EnvironmentObject var viewModel: FileTransferViewModel
     @Binding var isConnecting: Bool
     @Binding var shouldSave: Bool
-    @Binding var connectioName: String
+    @Binding var connectionName: String
+    @Binding var savedConnections: [SavedConnection]
     
     @State private var showPassword: Bool = false
     
@@ -20,6 +21,35 @@ struct CredentialsForm: View {
     
     var body: some View {
         Form {
+            // Saved connections section
+            if !savedConnections.isEmpty {
+                Section(header: Text("Saved Connections")) {
+                    ForEach(savedConnections, id: \.id) { connection in
+                        Button {
+                            fillFromSavedConnection(connection)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(connection.displayName)
+                                        .fontWeight(.medium)
+                                    
+                                    Text(connection.username)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                    }
+                }
+            }
+            
             Section(header: Text("Server Details")) {
                 TextField("Host", text: $viewModel.credentials.host)
                     .keyboardType(.URL)
@@ -63,7 +93,7 @@ struct CredentialsForm: View {
                 Toggle("Save for future use", isOn: $shouldSave)
                 
                 if shouldSave {
-                    TextField("Connection Name", text: $connectioName)
+                    TextField("Connection Name", text: $connectionName)
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
                 }
@@ -92,12 +122,41 @@ struct CredentialsForm: View {
     }
 }
 
+// MARK: - Private Functions
+extension CredentialsForm {
+    private func fillFromSavedConnection(_ connection: SavedConnection) {
+        viewModel.credentials.host = connection.host
+        viewModel.credentials.port = Int(connection.port)
+        viewModel.credentials.username = connection.username
+        viewModel.credentials.domain = connection.domain
+        
+        connectionName = connection.name
+        shouldSave = true
+    }
+}
+
 struct CredentialsForm_Previews: PreviewProvider {
     static var previews: some View {
         CredentialsForm(
             isConnecting: .constant(false),
             shouldSave: .constant(false),
-            connectioName: .constant(""),
+            connectionName: .constant(""),
+            savedConnections: .constant([
+                SavedConnection(
+                    name: "name 1",
+                    host: "192.168.1.1",
+                    port: 445,
+                    username: "test1",
+                    domain: ""
+                ),
+                SavedConnection(
+                    name: "name 2",
+                    host: "192.168.1.2",
+                    port: 445,
+                    username: "test2",
+                    domain: ""
+                ),
+            ]),
             onDisconnect: { }
         )
         .environmentObject(FileTransferViewModel())
