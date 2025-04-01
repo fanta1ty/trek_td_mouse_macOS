@@ -28,11 +28,43 @@ struct SMBFileRowView: View {
                 // File icon with background
                 ZStack {
                     RoundedRectangle(cornerRadius: 6)
+                        .fill(fileColor.opacity(0.15))
+                        .frame(width: 36, height: 36)
                 }
             }
         }
-
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
+// MARK: - Private Functions
 
+extension SMBFileRowView {
+    private var fileColor: Color {
+        if viewModel.isDirectory(file) {
+            return .blue
+        } else {
+            let ext = file.name.components(separatedBy: ".").last?.lowercased() ?? ""
+            switch ext {
+            case "pdf":
+                return .red
+            case "jpg", "jpeg", "png", "gif", "heic":
+                return .green
+            case "mp3", "wav", "m4a":
+                return .pink
+            case "mp4", "mov", "avi":
+                return .purple
+            case "doc", "docx":
+                return .blue
+            case "xls", "xlsx":
+                return .green
+            case "ppt", "pptx":
+                return .orange
+            case "zip", "rar", "7z":
+                return .gray
+            default:
+                return .secondary
+            }
+        }
+    }
+}
