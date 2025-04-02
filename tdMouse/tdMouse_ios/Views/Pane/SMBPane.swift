@@ -116,18 +116,28 @@ extension SMBPane {
     private func previewSmbFile(_ file: File) {
         guard let fileExtension = file.name.components(separatedBy: ".").last else { return }
         
-        currentPreviewFile = PreviewFileInfo(
-            title: file.name,
-            provider: {
-                try await viewModel.downloadFile(
+        Task {
+            do {
+                let downloadedData = try await viewModel.downloadFile(
                     fileName: file.name,
                     trackTransfer: false
                 )
-            },
-            extension: fileExtension
-        )
-        
-        showPreviewSheet = true
+                
+                await MainActor.run {
+                    currentPreviewFile = PreviewFileInfo(
+                        title: file.name,
+                        provider: {
+                            downloadedData
+                        },
+                        extension: fileExtension
+                    )
+                    
+                    showPreviewSheet = true
+                }
+            } catch {
+                print("Preview file failed: \(error)")
+            }
+        }
     }
 }
 
