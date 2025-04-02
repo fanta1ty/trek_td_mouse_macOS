@@ -10,11 +10,13 @@ import SwiftUI
 @main
 struct tdMouse_iosApp: App {
     @StateObject private var smbViewModel = FileTransferViewModel()
+    @StateObject private var localViewModel = LocalViewModel()
     
     var body: some Scene {
         WindowGroup {
             DualPaneFileView()
                 .environmentObject(smbViewModel)
+                .environmentObject(localViewModel)
         }
     }
 }
