@@ -11,6 +11,7 @@ import UniformTypeIdentifiers
 
 struct DualPaneFileView: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
+    @EnvironmentObject private var localViewModel: LocalViewModel
     
     @State private var currentPreviewFile: PreviewFileInfo?
     @State private var isConnectSheetPresented: Bool = false
@@ -51,7 +52,7 @@ struct DualPaneFileView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.leading)
                     
-                    
+                    LocalPane()
                 }
                 .padding(.bottom)
             }
@@ -113,5 +114,6 @@ struct DualPaneFileView_Previews: PreviewProvider {
     static var previews: some View {
         DualPaneFileView()
             .environmentObject(FileTransferViewModel())
+            .environmentObject(LocalViewModel())
     }
 }
