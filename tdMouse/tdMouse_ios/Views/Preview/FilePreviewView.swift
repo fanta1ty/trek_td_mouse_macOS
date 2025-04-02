@@ -27,24 +27,6 @@ struct FilePreviewView: View {
             } else if let previewURL {
                 PreviewController(url: previewURL)
                     .edgesIgnoringSafeArea(.all)
-                    .overlay(alignment: .topTrailing) {
-                        if !isLoading && error == nil {
-                            Button {
-                                showShareSheet = true
-                            } label: {
-                                Image(systemName: "square.and.arrow.up")
-                                    .font(.system(size: 22))
-                                    .padding(12)
-                                    .background(Color(UIColor.systemBackground).opacity(0.8))
-                                    .clipShape(Circle())
-                                    .shadow(radius: 2)
-                            }
-                            .padding([.top, .trailing], 16)
-                        }
-                    }
-                    .sheet(isPresented: $showShareSheet) {
-                        ShareLink(item: previewURL)
-                    }
             }
         }
         .navigationBarTitle(title, displayMode: .inline)
@@ -67,8 +49,7 @@ extension FilePreviewView {
                 isLoading = true
                 let data = try await fileProvider()
                 let tempDir = FileManager.default.temporaryDirectory
-                let tempURL = tempDir.appendingPathComponent(UUID().uuidString)
-                    .appendingPathComponent(fileExtension)
+                let tempURL = tempDir.appendingPathComponent(UUID().uuidString + ".\(fileExtension)")
                 
                 try data.write(to: tempURL)
                 
