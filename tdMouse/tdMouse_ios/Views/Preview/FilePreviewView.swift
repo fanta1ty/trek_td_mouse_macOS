@@ -14,6 +14,8 @@ struct FilePreviewView: View {
     @State private var error: String?
     @State private var showShareSheet: Bool = false
     
+    @Binding var showPreviewSheet: Bool
+    
     let title: String
     let fileProvider: () async throws -> Data
     let fileExtension: String
@@ -30,6 +32,17 @@ struct FilePreviewView: View {
             }
         }
         .navigationBarTitle(title, displayMode: .inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showPreviewSheet = false
+                } label: {
+                    Image(systemName: "xmark")
+                        .foregroundStyle(.primary)
+                }
+
+            }
+        }
         .onAppear {
             loadFile()
         }
@@ -70,6 +83,7 @@ extension FilePreviewView {
 struct FilePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         FilePreviewView(
+            showPreviewSheet: .constant(true),
             title: "Test",
             fileProvider: {
                 Data()
