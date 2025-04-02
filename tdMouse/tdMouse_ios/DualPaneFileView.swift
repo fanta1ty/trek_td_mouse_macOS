@@ -53,12 +53,40 @@ struct DualPaneFileView: View {
             }
         }
         .sheet(isPresented: $showPreviewSheet) {
-            if let fileInfo = currentPreviewFile {
+            if let currentPreviewFile {
                 NavigationView {
-                    
+                    FilePreviewView(
+                        title: currentPreviewFile.title,
+                        fileProvider: currentPreviewFile.provider,
+                        fileExtension: currentPreviewFile.extension
+                    )
                 }
                 .navigationTitle("Preview")
                 .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+        .toolbar {
+            ToolbarItem {
+                Menu {
+                    if viewModel.connectionState == .connected {
+                        Button {
+                            Task {
+                                try await viewModel.disconnect()
+                            }
+                        } label: {
+                            Label("Disconnect", systemImage: "link.circle")
+                        }
+                    } else {
+                        Button {
+                            isConnectSheetPresented = true
+                        } label: {
+                            Label("Connect to Server", systemImage: "link")
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+
             }
         }
     }
