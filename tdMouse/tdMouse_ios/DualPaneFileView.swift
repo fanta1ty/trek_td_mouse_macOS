@@ -56,6 +56,7 @@ struct DualPaneFileView: View {
             if let currentPreviewFile {
                 NavigationView {
                     FilePreviewView(
+                        showPreviewSheet: $showPreviewSheet,
                         title: currentPreviewFile.title,
                         fileProvider: currentPreviewFile.provider,
                         fileExtension: currentPreviewFile.extension
@@ -64,9 +65,24 @@ struct DualPaneFileView: View {
                 .navigationTitle("Preview")
                 .navigationBarTitleDisplayMode(.inline)
             } else {
-                VStack {
-                    ProgressView()
-                    Text("Preparing preview... Please try again later.")
+                VStack(alignment: .trailing) {
+                    // Close button
+                    Button {
+                        showPreviewSheet = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(.primary)
+                            .padding(10)
+                    }
+                    .padding([.top, .trailing], 16)
+                    
+                    
+                    VStack(alignment: .center) {
+                        ProgressView()
+                            .padding(.bottom, 8)
+                        Text("Preparing preview... Please try again later.")
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity) 
                 }
             }
         }
