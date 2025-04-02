@@ -40,7 +40,6 @@ struct FilePreviewView: View {
                     Image(systemName: "xmark")
                         .foregroundStyle(.primary)
                 }
-
             }
         }
         .onAppear {
