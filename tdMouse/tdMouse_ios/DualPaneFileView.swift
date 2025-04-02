@@ -63,6 +63,11 @@ struct DualPaneFileView: View {
                 }
                 .navigationTitle("Preview")
                 .navigationBarTitleDisplayMode(.inline)
+            } else {
+                VStack {
+                    ProgressView()
+                    Text("Preparing preview... Please try again later.")
+                }
             }
         }
         .toolbar {
