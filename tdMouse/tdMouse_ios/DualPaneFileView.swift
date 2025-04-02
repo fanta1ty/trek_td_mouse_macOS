@@ -42,9 +42,21 @@ struct DualPaneFileView: View {
                     )
                     .frame(height: geometry.size.height * 0.45)
                     .padding(.horizontal)
+                    
+                    Divider()
+                        .padding(.vertical, 8)
+                    
+                    Text("Local Files")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading)
+                    
+                    
                 }
                 .padding(.bottom)
             }
+            
+            // Transfer status bar
         }
         .sheet(isPresented: $isConnectSheetPresented) {
             NavigationView {
@@ -53,38 +65,22 @@ struct DualPaneFileView: View {
             }
         }
         .sheet(isPresented: $showPreviewSheet) {
-            if let currentPreviewFile {
-                NavigationView {
+            NavigationView {
+                if let currentPreviewFile {
                     FilePreviewView(
                         showPreviewSheet: $showPreviewSheet,
                         title: currentPreviewFile.title,
                         fileProvider: currentPreviewFile.provider,
                         fileExtension: currentPreviewFile.extension
                     )
-                }
-                .navigationTitle("Preview")
-                .navigationBarTitleDisplayMode(.inline)
-            } else {
-                VStack(alignment: .trailing) {
-                    // Close button
-                    Button {
-                        showPreviewSheet = false
-                    } label: {
-                        Image(systemName: "xmark")
-                            .foregroundStyle(.primary)
-                            .padding(10)
-                    }
-                    .padding([.top, .trailing], 16)
-                    
-                    
-                    VStack(alignment: .center) {
-                        ProgressView()
-                            .padding(.bottom, 8)
-                        Text("Preparing preview... Please try again later.")
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity) 
+                } else {
+                    FilePreparingPreviewView(
+                        showPreviewSheet: $showPreviewSheet
+                    )
                 }
             }
+            .navigationTitle("Preview")
+            .navigationBarTitleDisplayMode(.inline)
         }
         .toolbar {
             ToolbarItem {
