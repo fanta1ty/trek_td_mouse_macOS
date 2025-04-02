@@ -110,7 +110,7 @@ struct CredentialsForm: View {
                     } label: {
                         HStack {
                             Spacer()
-                            Label("Disconnect", systemImage: "link.badge.minus")
+                            Label("Disconnect", systemImage: "link.circle")
                                 .foregroundStyle(.red)
                             Spacer()
                         }
