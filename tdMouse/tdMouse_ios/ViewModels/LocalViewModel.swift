@@ -19,10 +19,11 @@ class LocalViewModel: ObservableObject {
     @Published var photoAssets: [PHAsset] = []
     @Published var selectedPhotoAssets: [PHAsset] = []
     @Published var photoAuthorizationStatus: PHAuthorizationStatus = .notDetermined
+    @Published var canNavigateUp: Bool = false
     
     private let fileManager = FileManager.default
-    
-    private var localDirectoryURL: URL? {
+    var currentDirectory: URL?
+    var localDirectory: URL? {
         fileManager.urls(for: .documentDirectory, in: .userDomainMask)
             .first
     }
@@ -38,13 +39,17 @@ class LocalViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
+        currentDirectory = localDirectory
+        
         checkPhotoLibraryPermission()
+        
+        refreshLocalFiles()
     }
 }
 
 extension LocalViewModel {
-    private func refreshLocalFiles() {
-        guard let localDirectoryURL else {
+    func refreshLocalFiles() {
+        guard let directory = currentDirectory ?? localDirectory else {
             errorMessage = "Could not access local document directory"
             return
         }
@@ -56,7 +61,7 @@ extension LocalViewModel {
             
             do {
                 let fileURLs = try self.fileManager.contentsOfDirectory(
-                    at: localDirectoryURL,
+                    at: directory,
                     includingPropertiesForKeys: [.isDirectoryKey, .contentModificationDateKey, .fileSizeKey],
                     options: []
                 )
@@ -100,6 +105,14 @@ extension LocalViewModel {
                 }
             }
         }
+    }
+    
+    func navigateUp() {
+        guard canNavigateUp, let currentDir = currentDirectory else { return }
+        
+        currentDirectory = currentDir.deletingLastPathComponent()
+        
+        refreshLocalFiles()
     }
 }
 
