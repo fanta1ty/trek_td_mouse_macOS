@@ -160,5 +160,6 @@ struct CredentialsForm_Previews: PreviewProvider {
             onDisconnect: { }
         )
         .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
     }
 }

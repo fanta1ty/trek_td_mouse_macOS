@@ -149,5 +149,6 @@ struct SMBPane_Previews: PreviewProvider {
             showPreviewSheet: .constant(false)
         )
         .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
     }
 }

@@ -37,5 +37,6 @@ struct FIlePreparingPreviewView_Previews: PreviewProvider {
             showPreviewSheet: .constant(true)
         )
         .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
     }
 }

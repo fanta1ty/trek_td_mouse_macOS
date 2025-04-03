@@ -36,6 +36,7 @@ struct LocalPaneHeaderView: View {
 struct LocalPaneHeaderView_Previews: PreviewProvider {
     static var previews: some View {
         LocalPaneHeaderView()
+            .environmentObject(FileTransferViewModel())
             .environmentObject(LocalViewModel())
     }
 }

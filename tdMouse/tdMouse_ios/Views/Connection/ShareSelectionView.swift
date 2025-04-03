@@ -83,5 +83,6 @@ struct ShareSelectionView_Previews: PreviewProvider {
             onConnectToSelectedShare: {}
         )
         .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
     }
 }

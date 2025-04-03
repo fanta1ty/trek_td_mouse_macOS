@@ -47,5 +47,7 @@ struct PreviewErrorView: View {
 struct PreviewErrorView_Previews: PreviewProvider {
     static var previews: some View {
         PreviewErrorView(message: "Message")
+            .environmentObject(FileTransferViewModel())
+            .environmentObject(LocalViewModel())
     }
 }

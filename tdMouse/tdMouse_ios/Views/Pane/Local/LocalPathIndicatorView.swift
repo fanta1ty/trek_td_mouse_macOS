@@ -29,6 +29,7 @@ struct LocalPathIndicatorView: View {
 struct LocalPathIndicatorView_Previews: PreviewProvider {
     static var previews: some View  {
         LocalPathIndicatorView()
+            .environmentObject(FileTransferViewModel())
             .environmentObject(LocalViewModel())
     }
 }

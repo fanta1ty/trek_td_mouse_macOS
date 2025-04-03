@@ -90,5 +90,6 @@ struct FilePreviewView_Previews: PreviewProvider {
             fileExtension: "txt"
         )
         .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
     }
 }

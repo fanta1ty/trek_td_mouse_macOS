@@ -234,5 +234,6 @@ struct ConnectionSheetView_Previews: PreviewProvider {
             isPresented: .constant(true)
         )
         .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
     }
 }

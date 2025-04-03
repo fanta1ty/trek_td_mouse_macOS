@@ -52,7 +52,11 @@ struct DualPaneFileView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.leading)
                     
-                    LocalPane()
+                    LocalPane(
+                        activePaneIndex: $activePaneIndex
+                    )
+                    .frame(height: geometry.size.height * 0.45)
+                    .padding(.horizontal)
                 }
                 .padding(.bottom)
             }

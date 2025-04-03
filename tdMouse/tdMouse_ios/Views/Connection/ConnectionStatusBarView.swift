@@ -50,5 +50,6 @@ struct ConnectionStatusBarView_Previews: PreviewProvider {
             isConnectSheetPresented: .constant(true)
         )
         .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
     }
 }

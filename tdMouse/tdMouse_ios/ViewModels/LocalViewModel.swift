@@ -12,14 +12,16 @@ import Photos
 class LocalViewModel: ObservableObject {
     @Published var localFiles: [LocalFile] = []
     @Published var isLoading: Bool = false
+    @Published var canNavigateUp: Bool = false
+    @Published var showPhotoAssets: Bool = true
     @Published var errorMessage: String? = nil
-    @Published var transferProgress: Double = 0
     @Published var currentTransferName: String? = nil
     @Published var searchText: String = ""
+    @Published var transferProgress: Double = 0
     @Published var photoAssets: [PHAsset] = []
     @Published var selectedPhotoAssets: [PHAsset] = []
     @Published var photoAuthorizationStatus: PHAuthorizationStatus = .notDetermined
-    @Published var canNavigateUp: Bool = false
+    
     
     private let fileManager = FileManager.default
     var currentDirectory: URL?
@@ -56,8 +58,18 @@ extension LocalViewModel {
         
         isLoading = true
         
+        if let localDirectory {
+            canNavigateUp = directory.path != localDirectory.path && directory.path.count > localDirectory.path.count
+        } else {
+            canNavigateUp = false
+        }
+        
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
+            
+            var localFiles: [LocalFile] = []
+            let isAtRootDirectory = (self.localDirectory?.path == directory.path)
+            let shouldIncludePhotoAssets = isAtRootDirectory && self.showPhotoAssets
             
             do {
                 let fileURLs = try self.fileManager.contentsOfDirectory(
@@ -65,8 +77,6 @@ extension LocalViewModel {
                     includingPropertiesForKeys: [.isDirectoryKey, .contentModificationDateKey, .fileSizeKey],
                     options: []
                 )
-                
-                var localFiles: [LocalFile] = []
                 
                 for fileURL in fileURLs {
                     let resourceValues = try fileURL.resourceValues(forKeys: [.isDirectoryKey, .contentModificationDateKey, .fileSizeKey])
@@ -89,6 +99,25 @@ extension LocalViewModel {
                     )
                     
                     localFiles.append(localFile)
+                }
+                
+                // Add photo assets if we're at the root directory and showPhotoAssets is enabled
+                if shouldIncludePhotoAssets && (self.photoAuthorizationStatus == .authorized || self.photoAuthorizationStatus == .limited) {
+                    let fetchOptions = PHFetchOptions()
+                    fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+                    
+                    if !self.searchText.isEmpty {
+                        fetchOptions.predicate = NSPredicate(format: "creationDate >= %@", NSDate.distantPast as CVarArg)
+                    }
+                    
+                    let allAssetsResult = PHAsset.fetchAssets(with: fetchOptions)
+                    
+                    allAssetsResult.enumerateObjects { (asset, index, stop) in
+                        if self.searchText.isEmpty ||
+                            (asset.creationDate?.description.localizedCaseInsensitiveContains(self.searchText) ?? false) {
+                            localFiles.append(LocalFile(fromPhotoAsset: asset))
+                        }
+                    }
                 }
                 
                 // Sort files by name
@@ -140,22 +169,13 @@ extension LocalViewModel {
     }
     
     func fetchPhotoAssets() {
-        isLoading = true
-        
-        let fetchOptions = PHFetchOptions()
-        fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        
-        let allAssetsResult = PHAsset.fetchAssets(with: fetchOptions)
-        
-        var assets: [PHAsset] = []
-        allAssetsResult.enumerateObjects { asset, _, _ in
-            assets.append(asset)
+        if showPhotoAssets {
+            refreshLocalFiles()
         }
-        
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.photoAssets = assets
-            self.isLoading = false
-        }
+    }
+    
+    func togglePhotoAssets() {
+        showPhotoAssets.toggle()
+        refreshLocalFiles()
     }
 }
