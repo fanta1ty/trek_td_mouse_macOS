@@ -8,14 +8,20 @@
 import Foundation
 import Combine
 import CoreTransferable
+import SwiftUI
+import Photos
 
 struct LocalFile: Identifiable, Equatable {
-    let id: UUID
+    let id: UUID = UUID()
     var name: String
     var url: URL
     var isDirectory: Bool
     var size: Int64
     var modificationDate: Date?
+    
+    // Properties for photo assets
+    let isPhotoAsset: Bool
+    let photoAsset: PHAsset?
     
     var icon: String {
         if isDirectory {
@@ -52,24 +58,82 @@ struct LocalFile: Identifiable, Equatable {
         }
     }
     
+    var fileColor: Color {
+        if isDirectory {
+            return .green
+        } else {
+            let ext = name.components(separatedBy: ".").last?.lowercased() ?? ""
+            switch ext {
+            case "pdf":
+                return .red
+            case "jpg", "jpeg", "png", "gif", "heic":
+                return .green
+            case "mp3", "wav", "m4a":
+                return .pink
+            case "mp4", "mov", "avi":
+                return .purple
+            case "doc", "docx":
+                return .blue
+            case "xls", "xlsx":
+                return .green
+            case "ppt", "pptx":
+                return .orange
+            case "zip", "rar", "7z":
+                return .gray
+            default:
+                return .secondary
+            }
+        }
+    }
+    
     var isPreviewable: Bool {
         return Helpers.isPreviewableFileType(name) && !isDirectory
     }
     
     init(
-        id: UUID = UUID(),
         name: String,
         url: URL,
         isDirectory: Bool,
         size: Int64,
         modificationDate: Date?
     ) {
-        self.id = id
         self.name = name
         self.url = url
         self.isDirectory = isDirectory
         self.size = size
         self.modificationDate = modificationDate
+        self.isPhotoAsset = false
+        self.photoAsset = nil
+    }
+    
+    init(fromPhotoAsset asset: PHAsset) {
+        let assetName: String
+        
+        // Generate a name based on asset type and date
+        if asset.mediaType == .image {
+            assetName = "IMG_\(Int(asset.creationDate?.timeIntervalSince1970 ?? Date().timeIntervalSince1970))"
+        } else if asset.mediaType == .video {
+            assetName = "VID_\(Int(asset.creationDate?.timeIntervalSince1970 ?? Date().timeIntervalSince1970))"
+        } else {
+            assetName = "ASSET_\(Int(asset.creationDate?.timeIntervalSince1970 ?? Date().timeIntervalSince1970))"
+        }
+        
+        self.name = assetName
+        self.url = URL(string: "photos://\(asset.localIdentifier)")!
+        self.isDirectory = false
+        self.modificationDate = asset.modificationDate ?? asset.creationDate ?? Date()
+        
+        // Approximate size based on asset type
+        if asset.mediaType == .video {
+            // Estimate video size based on duration (rough estimate)
+            self.size = Int64(asset.duration * 5_000_000)
+        } else {
+            // Default estimated size for photos
+            self.size = 5_000_000
+        }
+        
+        self.isPhotoAsset = true
+        self.photoAsset = asset
     }
     
     static func == (lhs: LocalFile, rhs: LocalFile) -> Bool {
