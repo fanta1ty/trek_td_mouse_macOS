@@ -53,7 +53,9 @@ struct DualPaneFileView: View {
                         .padding(.leading)
                     
                     LocalPane(
-                        activePaneIndex: $activePaneIndex
+                        currentPreviewFile: $currentPreviewFile,
+                        activePaneIndex: $activePaneIndex,
+                        showPreviewSheet: $showPreviewSheet
                     )
                     .frame(height: geometry.size.height * 0.45)
                     .padding(.horizontal)
@@ -62,6 +64,9 @@ struct DualPaneFileView: View {
             }
             
             // Transfer status bar
+            TransferStatusBarView()
+                .padding()
+                .background(Color(UIColor.secondarySystemBackground))
         }
         .sheet(isPresented: $isConnectSheetPresented) {
             NavigationView {
@@ -119,5 +124,6 @@ struct DualPaneFileView_Previews: PreviewProvider {
         DualPaneFileView()
             .environmentObject(FileTransferViewModel())
             .environmentObject(LocalViewModel())
+            .environmentObject(TransferManager())
     }
 }

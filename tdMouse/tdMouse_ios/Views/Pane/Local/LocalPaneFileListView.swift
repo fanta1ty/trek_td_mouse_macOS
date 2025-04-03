@@ -41,8 +41,10 @@ struct LocalPaneFileListView: View {
 
 struct LocalPaneFileListView_Previews: PreviewProvider {
     static var previews: some View {
-        LocalPaneFileListView()
-            .environmentObject(FileTransferViewModel())
-            .environmentObject(LocalViewModel())
+        LocalPaneFileListView(
+            onTap: { _ in }
+        )
+        .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
     }
 }

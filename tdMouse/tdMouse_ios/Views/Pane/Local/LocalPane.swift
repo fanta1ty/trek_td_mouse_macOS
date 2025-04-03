@@ -43,7 +43,7 @@ struct LocalPane: View {
 extension LocalPane {
     private func handleLocalFileTap(_ file: LocalFile) {
         if file.isDirectory {
-            viewModel
+            viewModel.navigateToDirectory(localFile: file)
         } else if Helpers.isPreviewableFileType(file.name) {
             previewLocalFile(file)
         }

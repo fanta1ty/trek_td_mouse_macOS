@@ -143,6 +143,16 @@ extension LocalViewModel {
         
         refreshLocalFiles()
     }
+    
+    func navigateToDirectory(localFile: LocalFile) {
+        guard localFile.isDirectory else {
+            errorMessage = "Selected item is not a directory"
+            return
+        }
+        
+        currentDirectory = localFile.url
+        refreshLocalFiles()
+    }
 }
 
 // MARK: - Photo Library Methods
