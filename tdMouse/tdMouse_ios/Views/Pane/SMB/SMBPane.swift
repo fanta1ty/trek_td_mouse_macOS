@@ -99,6 +99,9 @@ struct SMBPane: View {
         .onTapGesture {
             activePaneIndex = 0
         }
+        .dropDestination(for: String.self) { items, location in
+            return true
+        }
     }
 }
 
