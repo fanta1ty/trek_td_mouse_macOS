@@ -36,8 +36,11 @@ struct TransferStatusBarView: View {
                             .font(.caption.monospacedDigit())
                     }
                     
-                    ProgressView(value: Double(transferManager.processedTransferItems), total: Double(max(1, transferManager.totalTransferItems)))
-                        .frame(width: 80)
+                    ProgressView(
+                        value: Double(transferManager.processedTransferItems),
+                        total: Double(max(1, transferManager.totalTransferItems))
+                    )
+                    .frame(width: 80)
                 }
             } else {
                 HStack {
