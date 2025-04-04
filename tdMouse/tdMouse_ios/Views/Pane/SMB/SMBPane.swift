@@ -49,19 +49,8 @@ struct SMBPane: View {
             
             if viewModel.connectionState == .connected {
                 // Breadcrumb path
-                HStack {
-                    Text("\(viewModel.shareName)/\(viewModel.currentDirectory)")
-                        .font(.caption)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .padding(.vertical, 4)
-                        .padding(.horizontal, 8)
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(4)
-                    
-                    Spacer()
-                }
-                .padding(.bottom, 4)
+                SMBPathIndicatorView()
+                    .padding(.bottom, 4)
                 
                 // File list
                 if viewModel.files.isEmpty {
