@@ -11,6 +11,7 @@ import SMBClient
 struct SMBFileRowView: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
     @State private var showActionSheet: Bool = false
+    @State private var isDragging: Bool = false
     
     private var fileIcon: String {
         if viewModel.isDirectory(file) { return "folder.fill" }
@@ -78,6 +79,29 @@ struct SMBFileRowView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+        .onDrag {
+            isDragging = true
+            
+            let provider = NSItemProvider()
+            
+            let fileData: [String: String] = [
+                "name": file.name,
+                "isDirectory": viewModel.isDirectory(file) ? "true": "false",
+                "type": "smbFile",
+                "path": viewModel.currentDirectory.isEmpty ? file.name : "\(viewModel.currentDirectory)/\(file.name)"
+            ]
+            
+            if let jsonData = try? JSONSerialization.data(withJSONObject: fileData),
+               let jsonString = String(data: jsonData, encoding: .utf8) {
+                provider.registerObject(jsonString as NSString, visibility: .all)
+                
+            } else {
+                provider.registerObject(file.name as NSString, visibility: .all)
+            }
+            
+            return provider
+        }
+        
     }
 }
 
