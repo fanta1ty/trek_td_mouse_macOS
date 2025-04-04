@@ -18,34 +18,8 @@ struct SMBPane: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            HStack {
-                Spacer()
-                
-                if viewModel.connectionState == .connected {
-                    // Navigation controls
-                    HStack(spacing: 12) {
-                        Button {
-                            Task {
-                                try await viewModel.navigateUp()
-                            }
-                        } label: {
-                            Image(systemName: "arrow.up")
-                                .foregroundStyle(viewModel.currentDirectory.isEmpty ? .gray : .blue)
-                        }
-                        .disabled(viewModel.currentDirectory.isEmpty)
-                        
-                        Button {
-                            Task {
-                                try await viewModel.listFiles(viewModel.currentDirectory)
-                            }
-                        } label: {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                    }
-                    .padding(.horizontal, 4)
-                }
-            }
-            .padding(.vertical, 4)
+            SMBPaneHeaderView()
+                .padding(.vertical, 4)
             
             if viewModel.connectionState == .connected {
                 // Breadcrumb path
@@ -53,25 +27,7 @@ struct SMBPane: View {
                     .padding(.bottom, 4)
                 
                 // File list
-                if viewModel.files.isEmpty {
-                    EmptyStateView(
-                        systemName: "folder",
-                        title: "No Files",
-                        message: "This folder is empty"
-                    )
-                } else {
-                    ScrollView {
-                        LazyVStack(spacing: 0) {
-                            ForEach(viewModel.files.filter{ $0.name != "." && $0.name != ".." }, id: \.name) { file in
-                                SMBFileRowView(
-                                    file: file,
-                                    onTap: handleSMBFileTap
-                                )
-                                .padding(.vertical, 2)
-                            }
-                        }
-                    }
-                }
+                SMBPaneFileListView(onTap: handleSMBFileTap)
             } else {
                 EmptyStateView(
                     systemName: "link.slash",
