@@ -38,7 +38,7 @@ struct SMBPathIndicatorView: View {
                 }
                 .padding(.vertical, 4)
                 .padding(.horizontal, 8)
-                .background(Color.green.opacity(0.1))
+                .background(Color.blue.opacity(0.1))
                 .cornerRadius(4)
             }
             
