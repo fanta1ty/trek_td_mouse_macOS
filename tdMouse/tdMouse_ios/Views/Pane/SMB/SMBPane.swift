@@ -10,6 +10,7 @@ import SMBClient
 
 struct SMBPane: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
+    @EnvironmentObject private var transferManager: TransferManager
     
     @Binding var currentPreviewFile: PreviewFileInfo?
     @Binding var activePaneIndex: Int
@@ -44,7 +45,8 @@ struct SMBPane: View {
         .onTapGesture {
             activePaneIndex = 0
         }
-        .dropDestination(for: String.self) { items, location in
+        .dropDestination(for: String.self) { items, _ in
+            handleFileDrop(items)
             return true
         }
     }
@@ -87,6 +89,65 @@ extension SMBPane {
             }
         }
     }
+    
+    private func handleFileDrop(_ items: [String]) {
+        guard !items.isEmpty, viewModel.connectionState == .connected else { return }
+        
+        for item in items {
+            if let data = item.data(using: .utf8),
+               let fileInfo = try? JSONSerialization.jsonObject(with: data) as? [String: String],
+               let path = fileInfo["path"], let isDirectoryStr = fileInfo["isDirectory"],
+                fileInfo["type"] == "localFile" {
+                let isDirectory = isDirectoryStr == "true"
+                let url = URL(filePath: path)
+                
+                
+                guard let file = localFileFromURL(url) else {
+                    continue
+                }
+                
+                Task {
+                    if isDirectory {
+                        
+                    } else {
+                        // Handle single file upload
+                        await transferManager.startSingleFileUpload(
+                            file: file,
+                            smbViewModel: viewModel) {
+                                Task {
+                                    try? await viewModel.listFiles(viewModel.currentDirectory)
+                                }
+                            }
+                    }
+                }
+            }
+        }
+    }
+    
+    private func localFileFromURL(_ url: URL) -> LocalFile? {
+        do {
+            let resourceValues = try url.resourceValues(forKeys: [
+                .isDirectoryKey,
+                .fileSizeKey,
+                .contentModificationDateKey
+            ])
+            let isDirectory = resourceValues.isDirectory ?? false
+            let size = resourceValues.fileSize ?? 0
+            let modificationDate = resourceValues.contentModificationDate ?? Date()
+            
+            return LocalFile(
+                name: url.lastPathComponent,
+                url: url,
+                isDirectory: isDirectory,
+                size: Int64(size),
+                modificationDate: modificationDate
+            )
+            
+        } catch {
+            print("Error creating local file from URL: \(error)")
+            return nil
+        }
+    }
 }
 
 struct SMBPane_Previews: PreviewProvider {
@@ -98,5 +159,6 @@ struct SMBPane_Previews: PreviewProvider {
         )
         .environmentObject(FileTransferViewModel())
         .environmentObject(LocalViewModel())
+        .environmentObject(TransferManager())
     }
 }
