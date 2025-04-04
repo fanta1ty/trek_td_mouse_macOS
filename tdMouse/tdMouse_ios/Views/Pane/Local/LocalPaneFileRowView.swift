@@ -9,6 +9,7 @@ import SwiftUI
 
 struct LocalPaneFileRowView: View {
     @EnvironmentObject private var viewModel: LocalViewModel
+    @State private var isDragging = false
     
     @Binding var showActionSheet: Bool
     
@@ -74,6 +75,28 @@ struct LocalPaneFileRowView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
+        .onDrag {
+            isDragging = true
+            
+            let provider = NSItemProvider()
+            
+            let fileData: [String: String] = [
+                "name": file.name,
+                "isDirectory": file.isDirectory ? "true" : "false",
+                "type": "localFile",
+                "path": file.url.path
+            ]
+            
+            if let jsonData = try? JSONSerialization.data(withJSONObject: fileData),
+               let jsonString = String(data: jsonData, encoding: .utf8) {
+                
+                provider.registerObject(jsonString as NSString, visibility: .all)
+            } else {
+                provider.registerObject(file.name as NSString, visibility: .all)
+            }
+            
+            return provider
+        }
     }
 }
 
