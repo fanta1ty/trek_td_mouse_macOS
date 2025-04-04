@@ -37,6 +37,9 @@ struct LocalPane: View {
         .onTapGesture {
             activePaneIndex = 1
         }
+        .dropDestination(for: String.self) { items, location in
+            return true
+        }
     }
 }
 
