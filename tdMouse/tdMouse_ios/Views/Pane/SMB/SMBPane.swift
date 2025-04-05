@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SMBClient
+import Photos
 
 struct SMBPane: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
@@ -96,8 +97,20 @@ extension SMBPane {
         for item in items {
             if let data = item.data(using: .utf8),
                let fileInfo = try? JSONSerialization.jsonObject(with: data) as? [String: String],
-               let path = fileInfo["path"], let isDirectoryStr = fileInfo["isDirectory"],
-                fileInfo["type"] == "localFile" {
+               let fileName = fileInfo["name"],
+               let path = fileInfo["path"],
+               let isDirectoryStr = fileInfo["isDirectory"],
+               fileInfo["type"] == "localFile" {
+                
+                // Check if this is a photo asset
+                if fileInfo["isPhotoAsset"] == "true",
+                    let assetLocalIdentifier = fileInfo["assetLocalIdentifier"] {
+                    
+                    // Handle photo asset upload
+                    handlePhotoAssetUpload(id: assetLocalIdentifier, fileName: fileName)
+                    continue
+                }
+                
                 let isDirectory = isDirectoryStr == "true"
                 let url = URL(filePath: path)
                 
@@ -108,7 +121,13 @@ extension SMBPane {
                 
                 Task {
                     if isDirectory {
-                        
+                        await transferManager.startFolderUpload(
+                            folder: file,
+                            smbViewModel: viewModel) {
+                                Task {
+                                    try? await viewModel.listFiles(viewModel.currentDirectory)
+                                }
+                            }
                     } else {
                         // Handle single file upload
                         await transferManager.startSingleFileUpload(
@@ -146,6 +165,17 @@ extension SMBPane {
         } catch {
             print("Error creating local file from URL: \(error)")
             return nil
+        }
+    }
+    
+    private func handlePhotoAssetUpload(
+        id: String,
+        fileName: String
+    ) {
+        let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil)
+        
+        guard let photoAsset = fetchResult.firstObject else {
+            return
         }
     }
 }
