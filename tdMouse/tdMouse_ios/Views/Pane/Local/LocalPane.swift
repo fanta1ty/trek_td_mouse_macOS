@@ -37,7 +37,8 @@ struct LocalPane: View {
         .onTapGesture {
             activePaneIndex = 1
         }
-        .dropDestination(for: String.self) { items, location in
+        .dropDestination(for: String.self) { items, _ in
+            handleDrop(items)
             return true
         }
     }
@@ -61,6 +62,10 @@ extension LocalPane {
             extension: file.name.components(separatedBy: ".").last ?? ""
         )
         showPreviewSheet = true
+    }
+    
+    private func handleDrop(_ items: [String]) {
+        guard !items.isEmpty else { return }
     }
 }
 
