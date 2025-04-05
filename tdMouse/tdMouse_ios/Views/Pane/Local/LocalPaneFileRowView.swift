@@ -80,12 +80,18 @@ struct LocalPaneFileRowView: View {
             
             let provider = NSItemProvider()
             
-            let fileData: [String: String] = [
+            var fileData: [String: String] = [
                 "name": file.name,
                 "isDirectory": file.isDirectory ? "true" : "false",
                 "type": "localFile",
                 "path": file.url.path
             ]
+            
+            if let photoAsset = file.photoAsset {
+                fileData["isPhotoAsset"] = "true"
+                fileData["assetLocalIdentifier"] = photoAsset.localIdentifier
+                fileData["assetMediaType"] = String(photoAsset.mediaType.rawValue)
+            }
             
             if let jsonData = try? JSONSerialization.data(withJSONObject: fileData),
                let jsonString = String(data: jsonData, encoding: .utf8) {
