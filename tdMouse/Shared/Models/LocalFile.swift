@@ -24,6 +24,10 @@ struct LocalFile: Identifiable, Equatable {
     let photoAsset: PHAsset?
     
     var icon: String {
+        if let _ = photoAsset {
+            return "photo"
+        }
+        
         if isDirectory {
             return "folder"
         }
