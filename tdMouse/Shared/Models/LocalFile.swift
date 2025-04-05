@@ -63,7 +63,9 @@ struct LocalFile: Identifiable, Equatable {
     }
     
     var fileColor: Color {
-        if isDirectory {
+        if let _ = photoAsset {
+            return .green
+        } else if isDirectory {
             return .green
         } else {
             let ext = name.components(separatedBy: ".").last?.lowercased() ?? ""
