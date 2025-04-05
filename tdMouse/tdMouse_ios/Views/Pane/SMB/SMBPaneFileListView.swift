@@ -1,0 +1,47 @@
+//
+//  SMBPaneFileListView.swift
+//  tdMouse
+//
+//  Created by mobile on 3/4/25.
+//
+
+import SwiftUI
+import SMBClient
+
+struct SMBPaneFileListView: View {
+    @EnvironmentObject private var viewModel: FileTransferViewModel
+    
+    let onTap: (File) -> Void
+    
+    var body: some View {
+        if viewModel.files.isEmpty {
+            EmptyStateView(
+                systemName: "folder",
+                title: "No Files",
+                message: "This folder is empty"
+            )
+        } else {
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(viewModel.files.filter{ $0.name != "." && $0.name != ".." }, id: \.name) { file in
+                        SMBFileRowView(
+                            file: file,
+                            onTap: onTap
+                        )
+                        .padding(.vertical, 2)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct SMBPaneFileListView_Previews: PreviewProvider {
+    static var previews: some View {
+        SMBPaneFileListView(
+            onTap: { _ in }
+        )
+        .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
+    }
+}
