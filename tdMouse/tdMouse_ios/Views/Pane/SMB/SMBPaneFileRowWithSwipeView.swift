@@ -1,5 +1,5 @@
 //
-//  SMBFileRowWithSwipeView.swift
+//  SMBPaneFileRowWithSwipeView.swift
 //  tdMouse
 //
 //  Created by mobile on 6/4/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SMBClient
 
-struct SMBFileRowWithSwipeView: View {
+struct SMBPaneFileRowWithSwipeView: View {
     @State private var offset: CGFloat = 0
     @State private var isSwiped: Bool = false
     
@@ -37,7 +37,7 @@ struct SMBFileRowWithSwipeView: View {
             }
             
             // Your existing file row view
-            SMBFileRowView(
+            SMBPaneFileRowView(
                 file: file,
                 onTap: onTap,
                 onSwipe: {

@@ -1,5 +1,5 @@
 //
-//  SMBPathIndicatorView.swift
+//  SMBPanePathIndicatorView.swift
 //  tdMouse
 //
 //  Created by Thinh Nguyen on 2/4/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SMBPathIndicatorView: View {
+struct SMBPanePathIndicatorView: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
     
     var body: some View {
@@ -47,7 +47,7 @@ struct SMBPathIndicatorView: View {
     }
 }
 
-extension SMBPathIndicatorView {
+extension SMBPanePathIndicatorView {
     private func getPath() -> [String] {
         guard !viewModel.currentDirectory.isEmpty else {
             return []
@@ -59,9 +59,9 @@ extension SMBPathIndicatorView {
     }
 }
 
-struct SMBPathIndicatorView_Previews: PreviewProvider {
+struct SMBPanePathIndicatorView_Previews: PreviewProvider {
     static var previews: some View  {
-        SMBPathIndicatorView()
+        SMBPanePathIndicatorView()
             .environmentObject(FileTransferViewModel())
             .environmentObject(LocalViewModel())
     }

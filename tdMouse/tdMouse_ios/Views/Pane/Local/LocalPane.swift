@@ -23,7 +23,7 @@ struct LocalPane: View {
                 .padding(.vertical, 4)
             
             // Path indicator
-            LocalPathIndicatorView()
+            LocalPanePathIndicatorView()
                 .padding(.bottom, 4)
             
             // Local file list

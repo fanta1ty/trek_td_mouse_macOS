@@ -25,7 +25,7 @@ struct SMBPane: View {
             
             if viewModel.connectionState == .connected {
                 // Breadcrumb path
-                SMBPathIndicatorView()
+                SMBPanePathIndicatorView()
                     .padding(.bottom, 4)
                 
                 // File list

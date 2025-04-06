@@ -1,5 +1,5 @@
 //
-//  SMBFileRowView.swift
+//  SMBPaneFileRowView.swift
 //  tdMouse
 //
 //  Created by Thinh Nguyen on 31/3/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SMBClient
 
-struct SMBFileRowView: View {
+struct SMBPaneFileRowView: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
     @State private var isDragging: Bool = false
     
@@ -103,10 +103,4 @@ struct SMBFileRowView: View {
         }
         
     }
-}
-
-// MARK: - Private Functions
-
-extension SMBFileRowView {
-    
 }

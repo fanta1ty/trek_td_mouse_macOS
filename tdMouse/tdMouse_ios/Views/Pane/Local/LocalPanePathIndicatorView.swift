@@ -1,5 +1,5 @@
 //
-//  LocalPathIndicatorView.swift
+//  LocalPanePathIndicatorView.swift
 //  tdMouse
 //
 //  Created by Thinh Nguyen on 2/4/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct LocalPathIndicatorView: View {
+struct LocalPanePathIndicatorView: View {
     @EnvironmentObject private var viewModel: LocalViewModel
     
     var body: some View {
@@ -41,7 +41,7 @@ struct LocalPathIndicatorView: View {
     }
 }
 
-extension LocalPathIndicatorView {
+extension LocalPanePathIndicatorView {
     private func getPath() -> [String] {
         let path = viewModel.currentDirectory?.path ?? ""
         let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.path ?? ""
@@ -69,9 +69,9 @@ extension LocalPathIndicatorView {
     }
 }
 
-struct LocalPathIndicatorView_Previews: PreviewProvider {
+struct LocalPanePathIndicatorView_Previews: PreviewProvider {
     static var previews: some View  {
-        LocalPathIndicatorView()
+        LocalPanePathIndicatorView()
             .environmentObject(FileTransferViewModel())
             .environmentObject(LocalViewModel())
     }

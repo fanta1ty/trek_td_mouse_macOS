@@ -24,7 +24,7 @@ struct SMBPaneFileListView: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(viewModel.files.filter{ $0.name != "." && $0.name != ".." }, id: \.name) { file in
-                        SMBFileRowWithSwipeView(
+                        SMBPaneFileRowWithSwipeView(
                             file: file,
                             onTap: onTap,
                             onDelete: { deleteFile(file) }
