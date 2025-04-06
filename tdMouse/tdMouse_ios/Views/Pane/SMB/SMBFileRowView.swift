@@ -10,7 +10,6 @@ import SMBClient
 
 struct SMBFileRowView: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
-    @State private var showActionSheet: Bool = false
     @State private var isDragging: Bool = false
     
     private var fileIcon: String {
@@ -20,6 +19,7 @@ struct SMBFileRowView: View {
     
     let file: File
     let onTap: (File) -> Void
+    let onSwipe: () -> Void
     
     var body: some View {
         Button {
@@ -62,7 +62,7 @@ struct SMBFileRowView: View {
                     
                     // Action Button
                     Button {
-                        
+                        onSwipe()
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .foregroundColor(.secondary)
