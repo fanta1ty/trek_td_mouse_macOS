@@ -11,6 +11,8 @@ struct LocalPane: View {
     @EnvironmentObject private var viewModel: LocalViewModel
     @EnvironmentObject private var smbViewModel: FileTransferViewModel
     @EnvironmentObject private var transferManager: TransferManager
+    
+    @State private var isDropTargetActive: Bool = false
 
     @Binding var currentPreviewFile: PreviewFileInfo?
     @Binding var activePaneIndex: Int
@@ -30,6 +32,22 @@ struct LocalPane: View {
             LocalPaneFileListView(
                 onTap: handleLocalFileTap
             )
+            
+            if isDropTargetActive {
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.blue, lineWidth: 3)
+                    .background(Color.blue.opacity(0.1))
+                    .overlay(
+                        VStack {
+                            Image(systemName: "arrow.down.doc.fill")
+                                .font(.system(size: 40))
+                                .foregroundColor(.blue)
+                            Text("Drop to Download")
+                                .font(.headline)
+                                .foregroundColor(.blue)
+                        }
+                    )
+            }
         }
         .background(
             RoundedRectangle(cornerRadius: 8)
@@ -42,6 +60,8 @@ struct LocalPane: View {
         .dropDestination(for: String.self) { items, _ in
             handleFileDrop(items)
             return true
+        } isTargeted: { isTargeted in
+            isDropTargetActive = isTargeted
         }
     }
 }
