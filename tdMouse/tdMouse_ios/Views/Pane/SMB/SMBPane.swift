@@ -18,12 +18,15 @@ struct SMBPane: View {
     @Binding var currentPreviewFile: PreviewFileInfo?
     @Binding var activePaneIndex: Int
     @Binding var showPreviewSheet: Bool
+    @Binding var isCreateFolderSheetPresented: Bool
     
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            SMBPaneHeaderView()
-                .padding(.vertical, 4)
+            SMBPaneHeaderView(
+                isCreateFolderSheetPresented: $isCreateFolderSheetPresented
+            )
+            .padding(.vertical, 4)
             
             if viewModel.connectionState == .connected {
                 // Breadcrumb path
@@ -222,7 +225,8 @@ struct SMBPane_Previews: PreviewProvider {
         SMBPane(
             currentPreviewFile: .constant(nil),
             activePaneIndex: .constant(0),
-            showPreviewSheet: .constant(false)
+            showPreviewSheet: .constant(false),
+            isCreateFolderSheetPresented: .constant(false)
         )
         .environmentObject(FileTransferViewModel())
         .environmentObject(LocalViewModel())
