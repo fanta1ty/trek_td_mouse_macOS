@@ -16,6 +16,7 @@ struct DualPaneFileView: View {
     @State private var currentPreviewFile: PreviewFileInfo?
     @State private var isConnectSheetPresented: Bool = false
     @State private var showPreviewSheet: Bool = false
+    @State private var isCreateFolderSheetPresented = false
     @State private var activePaneIndex: Int = 0
     
     var body: some View {
@@ -39,7 +40,8 @@ struct DualPaneFileView: View {
                     SMBPane(
                         currentPreviewFile: $currentPreviewFile,
                         activePaneIndex: $activePaneIndex,
-                        showPreviewSheet: $showPreviewSheet
+                        showPreviewSheet: $showPreviewSheet,
+                        isCreateFolderSheetPresented: $isCreateFolderSheetPresented
                     )
                     .frame(height: geometry.size.height * 0.45)
                     .padding(.horizontal)
@@ -92,6 +94,15 @@ struct DualPaneFileView: View {
             .navigationTitle("Preview")
             .navigationBarTitleDisplayMode(.inline)
         }
+        .sheet(isPresented: $isCreateFolderSheetPresented, content: {
+            NavigationView {
+                SMBPaneCreateFolderView(
+                    isPresented: $isCreateFolderSheetPresented
+                )
+                .navigationTitle("New Folder")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        })
         .toolbar {
             ToolbarItem {
                 Menu {
