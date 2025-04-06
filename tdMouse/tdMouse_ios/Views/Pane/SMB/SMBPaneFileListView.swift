@@ -24,11 +24,11 @@ struct SMBPaneFileListView: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(viewModel.files.filter{ $0.name != "." && $0.name != ".." }, id: \.name) { file in
-                        SMBFileRowView(
+                        SMBFileRowWithSwipeView(
                             file: file,
-                            onTap: onTap
+                            onTap: onTap,
+                            onDelete: { deleteFile(file) }
                         )
-                        .padding(.vertical, 2)
                     }
                 }
             }
