@@ -26,7 +26,7 @@ struct LocalPaneFileListView: View {
         } else {
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(viewModel.localFiles, id: \.id) { file in
+                    ForEach(viewModel.localFiles.filter({ $0.name != ".DS_Store"} ), id: \.id) { file in
                         LocalPaneFileRowWithSwipeView(
                             file: file,
                             onTap: onTap,
