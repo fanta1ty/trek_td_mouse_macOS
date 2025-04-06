@@ -102,18 +102,22 @@ extension SMBPane {
                let isDirectoryStr = fileInfo["isDirectory"],
                fileInfo["type"] == "localFile" {
                 
+                let isDirectory = isDirectoryStr == "true"
+                
                 // Check if this is a photo asset
                 if fileInfo["isPhotoAsset"] == "true",
                     let assetLocalIdentifier = fileInfo["assetLocalIdentifier"] {
                     
                     // Handle photo asset upload
-                    handlePhotoAssetUpload(id: assetLocalIdentifier, fileName: fileName)
+                    handlePhotoAssetUpload(
+                        id: assetLocalIdentifier,
+                        fileName: fileName,
+                        isDirectory: isDirectory
+                    )
                     continue
                 }
                 
-                let isDirectory = isDirectoryStr == "true"
                 let url = URL(filePath: path)
-                
                 
                 guard let file = localFileFromURL(url) else {
                     continue
@@ -170,12 +174,25 @@ extension SMBPane {
     
     private func handlePhotoAssetUpload(
         id: String,
-        fileName: String
+        fileName: String,
+        isDirectory: Bool
     ) {
         let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil)
         
         guard let photoAsset = fetchResult.firstObject else {
             return
+        }
+        
+        Task {
+            await transferManager.startPhotoAssetUpload(
+                photoAsset: photoAsset,
+                fileName: fileName,
+                destinationPath: viewModel.pathForItem(fileName),
+                smbViewModel: viewModel) {
+                    Task {
+                        try? await viewModel.listFiles(viewModel.currentDirectory)
+                    }
+                }
         }
     }
 }
