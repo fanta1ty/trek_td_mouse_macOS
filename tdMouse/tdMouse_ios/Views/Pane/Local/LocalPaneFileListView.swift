@@ -24,27 +24,17 @@ struct LocalPaneFileListView: View {
                 message: "This folder is empty"
             )
         } else {
-            List {
-                ForEach(viewModel.localFiles) { file in
-                    LocalPaneFileRowView(
-                        showActionSheet: .constant(false),
-                        file: file,
-                        onTap: onTap
-                    )
-                    .padding(.vertical, 2)
-                    .listRowInsets(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
-                    .contentShape(Rectangle())
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                             deleteFile(file)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(viewModel.localFiles, id: \.id) { file in
+                        LocalPaneFileRowWithSwipeView(
+                            file: file,
+                            onTap: onTap,
+                            onDelete: { deleteFile(file) }
+                        )
                     }
                 }
-                .listRowSeparator(.hidden)
             }
-            .listStyle(.plain)
         }
     }
 }
