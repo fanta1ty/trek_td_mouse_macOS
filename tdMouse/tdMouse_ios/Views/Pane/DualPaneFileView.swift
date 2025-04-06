@@ -16,7 +16,8 @@ struct DualPaneFileView: View {
     @State private var currentPreviewFile: PreviewFileInfo?
     @State private var isConnectSheetPresented: Bool = false
     @State private var showPreviewSheet: Bool = false
-    @State private var isCreateFolderSheetPresented = false
+    @State private var isCreateLocalFolderSheetPresented = false
+    @State private var isCreateSMBFolderSheetPresented = false
     @State private var activePaneIndex: Int = 0
     
     var body: some View {
@@ -41,7 +42,7 @@ struct DualPaneFileView: View {
                         currentPreviewFile: $currentPreviewFile,
                         activePaneIndex: $activePaneIndex,
                         showPreviewSheet: $showPreviewSheet,
-                        isCreateFolderSheetPresented: $isCreateFolderSheetPresented
+                        isCreateFolderSheetPresented: $isCreateSMBFolderSheetPresented
                     )
                     .frame(height: geometry.size.height * 0.45)
                     .padding(.horizontal)
@@ -57,7 +58,8 @@ struct DualPaneFileView: View {
                     LocalPane(
                         currentPreviewFile: $currentPreviewFile,
                         activePaneIndex: $activePaneIndex,
-                        showPreviewSheet: $showPreviewSheet
+                        showPreviewSheet: $showPreviewSheet,
+                        isCreateFolderSheetPresented: $isCreateLocalFolderSheetPresented
                     )
                     .frame(height: geometry.size.height * 0.45)
                     .padding(.horizontal)
@@ -94,10 +96,19 @@ struct DualPaneFileView: View {
             .navigationTitle("Preview")
             .navigationBarTitleDisplayMode(.inline)
         }
-        .sheet(isPresented: $isCreateFolderSheetPresented, content: {
+        .sheet(isPresented: $isCreateSMBFolderSheetPresented, content: {
             NavigationView {
                 SMBPaneCreateFolderView(
-                    isPresented: $isCreateFolderSheetPresented
+                    isPresented: $isCreateSMBFolderSheetPresented
+                )
+                .navigationTitle("New Folder")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        })
+        .sheet(isPresented: $isCreateLocalFolderSheetPresented, content: {
+            NavigationView {
+                LocalPaneCreateFolderView(
+                    isPresented: $isCreateLocalFolderSheetPresented
                 )
                 .navigationTitle("New Folder")
                 .navigationBarTitleDisplayMode(.inline)
