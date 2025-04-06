@@ -36,6 +36,18 @@ struct SMBPaneFileListView: View {
     }
 }
 
+extension SMBPaneFileListView {
+    private func deleteFile(_ file: File) {
+        Task {
+            if viewModel.isDirectory(file) {
+                try await viewModel.deleteDirectoryRecursively(name: file.name)
+            } else {
+                try await viewModel.deleteItem(name: file.name, isDirectory: viewModel.isDirectory(file))
+            }
+        }
+    }
+}
+
 struct SMBPaneFileListView_Previews: PreviewProvider {
     static var previews: some View {
         SMBPaneFileListView(
