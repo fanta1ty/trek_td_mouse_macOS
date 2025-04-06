@@ -10,6 +10,8 @@ import SwiftUI
 struct SMBPaneHeaderView: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
     
+    @Binding var isCreateFolderSheetPresented: Bool
+    
     var body: some View {
         HStack {
             Spacer()
@@ -34,6 +36,12 @@ struct SMBPaneHeaderView: View {
                     } label: {
                         Image(systemName: "arrow.clockwise")
                     }
+                    
+                    Button {
+                        isCreateFolderSheetPresented = true
+                    } label: {
+                        Image(systemName: "folder.badge.plus")
+                    }
                 }
                 .padding(.horizontal, 4)
             }
@@ -43,8 +51,10 @@ struct SMBPaneHeaderView: View {
 
 struct SMBPaneHeaderView_Previews: PreviewProvider {
     static var previews: some View {
-        SMBPaneHeaderView()
-            .environmentObject(FileTransferViewModel())
-            .environmentObject(LocalViewModel())
+        SMBPaneHeaderView(
+            isCreateFolderSheetPresented: .constant(false)
+        )
+        .environmentObject(FileTransferViewModel())
+        .environmentObject(LocalViewModel())
     }
 }
