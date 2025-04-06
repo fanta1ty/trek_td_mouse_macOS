@@ -17,12 +17,15 @@ struct LocalPane: View {
     @Binding var currentPreviewFile: PreviewFileInfo?
     @Binding var activePaneIndex: Int
     @Binding var showPreviewSheet: Bool
+    @Binding var isCreateFolderSheetPresented: Bool
     
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            LocalPaneHeaderView()
-                .padding(.vertical, 4)
+            LocalPaneHeaderView(
+                isCreateFolderSheetPresented: $isCreateFolderSheetPresented
+            )
+            .padding(.vertical, 4)
             
             // Path indicator
             LocalPanePathIndicatorView()
@@ -161,7 +164,8 @@ struct LocalPane_Previews: PreviewProvider {
         LocalPane(
             currentPreviewFile: .constant(nil),
             activePaneIndex: .constant(0),
-            showPreviewSheet: .constant(false)
+            showPreviewSheet: .constant(false),
+            isCreateFolderSheetPresented: .constant(false)
         )
         .environmentObject(FileTransferViewModel())
         .environmentObject(LocalViewModel())
