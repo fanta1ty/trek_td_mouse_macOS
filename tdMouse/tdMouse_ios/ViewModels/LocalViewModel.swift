@@ -153,6 +153,30 @@ extension LocalViewModel {
         currentDirectory = localFile.url
         refreshLocalFiles()
     }
+    
+    func createDirectory(directoryName: String) throws {
+        guard let localDirectory else {
+            throw NSError(
+                domain: "LocalViewModel",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Could not access Documents directory"]
+            )
+        }
+        
+        let directoryURL = localDirectory.appendingPathComponent(directoryName)
+        
+        // Check if directory already exists
+        if fileManager.fileExists(atPath: directoryURL.path) {
+            throw NSError(
+                domain: "LocalViewModel",
+                code: -1,
+                userInfo: [NSLocalizedDescriptionKey: "Directory already exists at \(directoryURL.path)"]
+            )
+        }
+        
+        try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        refreshLocalFiles()
+    }
 }
 
 // MARK: - Photo Library Methods
