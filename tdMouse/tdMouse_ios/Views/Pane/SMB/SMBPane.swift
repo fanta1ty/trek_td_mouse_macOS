@@ -13,6 +13,8 @@ struct SMBPane: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
     @EnvironmentObject private var transferManager: TransferManager
     
+    @State private var isDropTargetActive: Bool = false
+    
     @Binding var currentPreviewFile: PreviewFileInfo?
     @Binding var activePaneIndex: Int
     @Binding var showPreviewSheet: Bool
@@ -30,6 +32,22 @@ struct SMBPane: View {
                 
                 // File list
                 SMBPaneFileListView(onTap: handleSMBFileTap)
+                
+                if isDropTargetActive {
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.green, lineWidth: 3)
+                        .background(Color.green.opacity(0.1))
+                        .overlay(
+                            VStack {
+                                Image(systemName: "arrow.up.doc.fill")
+                                    .font(.system(size: 40))
+                                    .foregroundColor(.green)
+                                Text("Drop to Upload")
+                                    .font(.headline)
+                                    .foregroundColor(.green)
+                            }
+                        )
+                }
             } else {
                 EmptyStateView(
                     systemName: "link.slash",
@@ -49,6 +67,8 @@ struct SMBPane: View {
         .dropDestination(for: String.self) { items, _ in
             handleFileDrop(items)
             return true
+        } isTargeted: { isTargeted in
+            isDropTargetActive = isTargeted
         }
     }
 }
