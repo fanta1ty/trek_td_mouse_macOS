@@ -11,10 +11,9 @@ struct LocalPaneFileRowView: View {
     @EnvironmentObject private var viewModel: LocalViewModel
     @State private var isDragging = false
     
-    @Binding var showActionSheet: Bool
-    
     let file: LocalFile
     let onTap: (LocalFile) -> Void
+    let onSwipe: () -> Void
     
     var body: some View {
         Button {
@@ -58,7 +57,7 @@ struct LocalPaneFileRowView: View {
                     Spacer()
                     
                     Button(action: {
-                        showActionSheet = true
+                        onSwipe()
                     }) {
                         Image(systemName: "ellipsis.circle")
                             .foregroundColor(.secondary)
@@ -109,7 +108,6 @@ struct LocalPaneFileRowView: View {
 struct LocalPaneFileRowView_Previews: PreviewProvider {
     static var previews: some View {
         LocalPaneFileRowView(
-            showActionSheet: .constant(false),
             file: .init(
                 name: "",
                 url: .init(string: "https://www.google.com/")!,
@@ -117,7 +115,8 @@ struct LocalPaneFileRowView_Previews: PreviewProvider {
                 size: 30,
                 modificationDate: Date()
             ),
-            onTap: { _ in }
+            onTap: { _ in },
+            onSwipe: { }
         )
         .environmentObject(LocalViewModel())
     }
