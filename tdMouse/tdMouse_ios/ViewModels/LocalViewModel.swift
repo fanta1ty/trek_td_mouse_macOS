@@ -213,3 +213,265 @@ extension LocalViewModel {
         refreshLocalFiles()
     }
 }
+
+extension LocalViewModel {
+    enum AssetFetchingError: Error, LocalizedError {
+        case assetNotFound
+        case requestFailed
+        case dataUnavailable
+        
+        var errorDescription: String? {
+            switch self {
+            case .assetNotFound:
+                return "The asset could not be found"
+            case .requestFailed:
+                return "Failed to fetch the asset"
+            case .dataUnavailable:
+                return "Asset data is unavailable"
+            }
+        }
+    }
+    
+    func fetchImageAsset(_ asset: PHAsset, quality: CGFloat = 1.0) async throws -> Data {
+        // Verify asset is an image
+        guard asset.mediaType == .image else {
+            throw AssetFetchingError.assetNotFound
+        }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            let options = PHImageRequestOptions()
+            options.deliveryMode = .highQualityFormat
+            options.isNetworkAccessAllowed = true
+            options.version = .current
+            options.resizeMode = .none
+            options.isSynchronous = false
+            
+            PHImageManager.default().requestImageDataAndOrientation(for: asset, options: options) { data, _, _, info in
+                if let error = info?[PHImageErrorKey] as? Error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let imageData = data else {
+                    continuation.resume(throwing: AssetFetchingError.dataUnavailable)
+                    return
+                }
+                
+                // Compress if needed
+                if quality < 1.0, let image = UIImage(data: imageData) {
+                    // Get file URL if available
+                    let fileURL = info?["PHImageFileURLKey"] as? URL
+                    let ext = fileURL?.pathExtension.lowercased() ?? ""
+                    
+                    // Determine if JPEG or HEIC from extension or try to detect from data
+                    let isJpeg = ext == "jpg" || ext == "jpeg" ||
+                    (imageData.count > 2 && imageData[0] == 0xFF && imageData[1] == 0xD8)
+                    let isHeic = ext == "heic" || ext == "heif"
+                    
+                    if isJpeg {
+                        if let compressedData = image.jpegData(compressionQuality: quality) {
+                            continuation.resume(returning: compressedData)
+                            return
+                        }
+                    } else if isHeic {
+                        // Convert HEIC to JPEG for better compatibility
+                        if let jpegData = image.jpegData(compressionQuality: quality) {
+                            continuation.resume(returning: jpegData)
+                            return
+                        }
+                    } else {
+                        // For other formats, use JPEG compression for consistency
+                        if let jpegData = image.jpegData(compressionQuality: quality) {
+                            continuation.resume(returning: jpegData)
+                            return
+                        }
+                    }
+                }
+                
+                continuation.resume(returning: imageData)
+            }
+        }
+    }
+    
+    func fetchImageAssetWithSize(_ asset: PHAsset, targetSize: CGSize, contentMode: PHImageContentMode = .aspectFit) async throws -> Data {
+        guard asset.mediaType == .image else {
+            throw AssetFetchingError.assetNotFound
+        }
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            let options = PHImageRequestOptions()
+            options.deliveryMode = .highQualityFormat
+            options.isNetworkAccessAllowed = true
+            options.version = .current
+            options.resizeMode = .exact
+            options.isSynchronous = false
+            
+            PHImageManager.default().requestImage(for: asset,
+                                                  targetSize: targetSize,
+                                                  contentMode: contentMode,
+                                                  options: options) { image, info in
+                if let error = info?[PHImageErrorKey] as? Error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let image = image else {
+                    continuation.resume(throwing: AssetFetchingError.dataUnavailable)
+                    return
+                }
+                
+                // Convert UIImage to Data
+                if let jpegData = image.jpegData(compressionQuality: 0.9) {
+                    continuation.resume(returning: jpegData)
+                    return
+                }
+                
+                continuation.resume(throwing: AssetFetchingError.dataUnavailable)
+            }
+        }
+    }
+    
+    func fetchVideoAsset(_ asset: PHAsset) async throws -> Data {
+        guard asset.mediaType == .video else {
+            throw AssetFetchingError.assetNotFound
+        }
+        
+        // Get the AVAsset first
+        let avAsset = try await fetchAVAsset(for: asset)
+        
+        // Get the file URL
+        guard let urlAsset = avAsset as? AVURLAsset else {
+            throw AssetFetchingError.dataUnavailable
+        }
+        
+        // Read the file data
+        return try Data(contentsOf: urlAsset.url)
+    }
+    
+    func fetchAVAsset(for asset: PHAsset) async throws -> AVAsset {
+        return try await withCheckedThrowingContinuation { continuation in
+            let options = PHVideoRequestOptions()
+            options.version = .current
+            options.deliveryMode = .highQualityFormat
+            options.isNetworkAccessAllowed = true
+            
+            PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { avAsset, _, info in
+                if let error = info?[PHImageErrorKey] as? Error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                
+                guard let avAsset = avAsset else {
+                    continuation.resume(throwing: AssetFetchingError.dataUnavailable)
+                    return
+                }
+                
+                continuation.resume(returning: avAsset)
+            }
+        }
+    }
+    
+    func fetchVideoThumbnail(for asset: PHAsset, at time: CMTime = CMTime(seconds: 1, preferredTimescale: 60), targetSize: CGSize = CGSize(width: 300, height: 300)) async throws -> Data {
+        guard asset.mediaType == .video else {
+            throw AssetFetchingError.assetNotFound
+        }
+        
+        // Get the AVAsset
+        let avAsset = try await fetchAVAsset(for: asset)
+        
+        // Create thumbnail
+        let imageGenerator = AVAssetImageGenerator(asset: avAsset)
+        imageGenerator.appliesPreferredTrackTransform = true
+        imageGenerator.maximumSize = targetSize
+        
+        let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+        let image = UIImage(cgImage: cgImage)
+        
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            throw AssetFetchingError.dataUnavailable
+        }
+        
+        return imageData
+    }
+    
+    func exportVideoAssetToFile(_ asset: PHAsset) async throws -> URL {
+        // Get the AVAsset
+        let avAsset = try await fetchAVAsset(for: asset)
+        
+        // If it's already a URL asset, we can copy the file
+        if let urlAsset = avAsset as? AVURLAsset {
+            let tempDir = FileManager.default.temporaryDirectory
+            let fileExt = urlAsset.url.pathExtension
+            let tempURL = tempDir.appendingPathComponent(UUID().uuidString + ".\(fileExt)")
+            
+            try FileManager.default.copyItem(at: urlAsset.url, to: tempURL)
+            return tempURL
+        }
+        
+        // Otherwise, we need to export it
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempURL = tempDir.appendingPathComponent(UUID().uuidString + ".mp4")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            guard let exportSession = AVAssetExportSession(asset: avAsset, presetName: AVAssetExportPresetHighestQuality) else {
+                continuation.resume(throwing: AssetFetchingError.requestFailed)
+                return
+            }
+            
+            exportSession.outputURL = tempURL
+            exportSession.outputFileType = .mp4
+            
+            exportSession.exportAsynchronously {
+                switch exportSession.status {
+                case .completed:
+                    continuation.resume(returning: tempURL)
+                case .failed, .cancelled:
+                    continuation.resume(throwing: exportSession.error ?? AssetFetchingError.requestFailed)
+                default:
+                    continuation.resume(throwing: AssetFetchingError.requestFailed)
+                }
+            }
+        }
+    }
+    
+    func getAssetExtension(_ asset: PHAsset) -> String? {
+        // This is a best-effort approach since PHAsset doesn't directly expose the file extension
+        
+        // For images, we can try to get the resource info
+        let resources = PHAssetResource.assetResources(for: asset)
+        
+        if let resource = resources.first {
+            let uti = resource.uniformTypeIdentifier
+            // Try to extract extension from uniform type identifier
+            
+            if uti.contains("jpeg") || uti.contains("jpg") {
+                return "jpg"
+            } else if uti.contains("png") {
+                return "png"
+            } else if uti.contains("heic") {
+                return "heic"
+            } else if uti.contains("gif") {
+                return "gif"
+            } else if uti.contains("tiff") {
+                return "tiff"
+            } else if uti.contains("mp4") {
+                return "mp4"
+            } else if uti.contains("mov") {
+                return "mov"
+            } else if uti.contains("avi") {
+                return "avi"
+            }
+            
+            
+            // Try to get extension from filename
+            let filename = resource.originalFilename
+            let ext = (filename as NSString).pathExtension.lowercased()
+            if !ext.isEmpty {
+                return ext
+            }
+        }
+        
+        // Fallback to default extensions based on media type
+        return asset.mediaType == .image ? "jpg" : "mp4"
+    }
+}

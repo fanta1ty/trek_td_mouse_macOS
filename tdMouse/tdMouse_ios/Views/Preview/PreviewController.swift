@@ -17,7 +17,13 @@ struct PreviewController: UIViewControllerRepresentable {
         let controller = QLPreviewController()
         controller.dataSource = context.coordinator
         
-        return UINavigationController(rootViewController: controller)
+        controller.navigationItem.leftBarButtonItem = nil
+        controller.navigationItem.rightBarButtonItem = nil
+        
+        let navController = UINavigationController(rootViewController: controller)
+        navController.navigationBar.isHidden = true
+        
+        return navController
     }
     
     func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {

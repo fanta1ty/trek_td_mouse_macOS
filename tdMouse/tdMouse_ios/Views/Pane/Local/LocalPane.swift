@@ -75,7 +75,32 @@ extension LocalPane {
             viewModel.navigateToDirectory(localFile: file)
         } else if Helpers.isPreviewableFileType(file.name) {
             previewLocalFile(file)
+        } else if let _ = file.photoAsset {
+            previewLocalAssetFile(file)
         }
+    }
+    
+    private func previewLocalAssetFile(_ file: LocalFile) {
+        if file.photoAsset!.mediaType == .image {
+            currentPreviewFile = PreviewFileInfo(
+                title: file.name,
+                provider: {
+                    try await viewModel.fetchImageAsset(file.photoAsset!)
+                },
+                extension: viewModel.getAssetExtension(file.photoAsset!) ?? ""
+            )
+        } else if file.photoAsset!.mediaType == .video {
+            currentPreviewFile = PreviewFileInfo(
+                title: file.name,
+                provider: {
+                    let url = try await viewModel.exportVideoAssetToFile(file.photoAsset!)
+                    return try Data(contentsOf: url)
+                },
+                extension: viewModel.getAssetExtension(file.photoAsset!) ?? ""
+            )
+        }
+        
+        showPreviewSheet = true
     }
     
     private func previewLocalFile(_ file: LocalFile) {

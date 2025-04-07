@@ -60,8 +60,18 @@ extension FilePreviewView {
             do {
                 isLoading = true
                 let data = try await fileProvider()
+                
+                let extensionToUse: String
+                
+                if !fileExtension.isEmpty {
+                    extensionToUse = fileExtension
+                } else {
+                    let mediaType = ContentTypeDetector.detectMediaType(from: data)
+                    extensionToUse = mediaType.fileExtension
+                }
+                
                 let tempDir = FileManager.default.temporaryDirectory
-                let tempURL = tempDir.appendingPathComponent(UUID().uuidString + ".\(fileExtension)")
+                let tempURL = tempDir.appendingPathComponent(UUID().uuidString + ".\(extensionToUse)")
                 
                 try data.write(to: tempURL)
                 
