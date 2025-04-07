@@ -60,7 +60,7 @@ extension TransferManager {
                     self.transferProgress = 0.6
                 }
                 
-                try await smbViewModel.uploadFile(data: imageData, fileName: fileName)
+                try await smbViewModel.uploadFile(data: imageData, fileName: "\(fileName).jpg")
                 
                 await MainActor.run {
                     self.transferProgress = 1.0
@@ -103,7 +103,7 @@ extension TransferManager {
                 
                 let videoData = try Data(contentsOf: urlAsset.url)
                 
-                try await smbViewModel.uploadFile(data: videoData, fileName: fileName)
+                try await smbViewModel.uploadFile(data: videoData, fileName: "\(fileName).\(urlAsset.url.pathExtension)")
                 
                 await MainActor.run {
                     self.transferProgress = 1.0
