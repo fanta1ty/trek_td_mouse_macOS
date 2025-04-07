@@ -50,4 +50,11 @@ struct SMBServerCredentials: Codable, Equatable {
         username: "admin",
         password: "password"
     )
+    
+    static let sample3 = SMBServerCredentials(
+        host: "10.211.55.5",
+        port: 445,
+        username: "sambauser",
+        password: "123456"
+    )
 }

@@ -43,7 +43,7 @@ class FileTransferViewModel: ObservableObject {
     // MARK: - Initialization
     
     init(credentials: SMBServerCredentials? = nil) {
-        self.credentials = credentials ?? SMBServerCredentials.sample2
+        self.credentials = credentials ?? SMBServerCredentials.sample3
         
         $credentials
             .map { credential in

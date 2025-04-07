@@ -423,14 +423,6 @@ struct DualPaneFileTransferView: View {
     }
 }
 
-// MARK: - Supporting Structures
-
-struct PreviewFileInfo {
-    let title: String
-    let provider: () async throws -> Data
-    let `extension`: String
-}
-
 // MARK: - Enhanced Components
 
 struct ModernToolbarView: View {

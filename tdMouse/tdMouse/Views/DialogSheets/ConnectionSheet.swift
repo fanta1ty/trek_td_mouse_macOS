@@ -235,7 +235,7 @@ struct ConnectionSheet: View {
                         await disconnectFromServer()
                     }
                 }) {
-                    Label("Disconnect", systemImage: "link.badge.minus")
+                    Label("Disconnect", systemImage: "link.circle")
                 }
                 .buttonStyle(.bordered)
                 .foregroundColor(.red)
