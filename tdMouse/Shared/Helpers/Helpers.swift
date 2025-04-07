@@ -159,4 +159,31 @@ struct Helpers {
         let fileExtension = fileName.components(separatedBy: ".").last?.lowercased() ?? ""
         return previewableExtensions.contains(fileExtension)
     }
+    
+    static func formatDuration(_ duration: TimeInterval) -> String {
+        if duration < 60 {
+            return String(format: "%.1f seconds", duration)
+        } else if duration < 3600 {
+            let minutes = Int(duration / 60)
+            let seconds = Int(duration) % 60
+            return "\(minutes)m \(seconds)s"
+        } else {
+            let hours = Int(duration / 3600)
+            let minutes = (Int(duration) % 3600) / 60
+            let seconds = Int(duration) % 60
+            return "\(hours)h \(minutes)m \(seconds)s"
+        }
+    }
+    
+    static func formatSpeed(_ bytesPerSecond: Double) -> String {
+        guard bytesPerSecond > 0 else { return "N/A" }
+        
+        if bytesPerSecond < 1024 {
+            return String(format: "%.1f B/s", bytesPerSecond)
+        } else if bytesPerSecond < 1048576 {
+            return String(format: "%.1f KB/s", bytesPerSecond / 1024)
+        } else {
+            return String(format: "%.1f MB/s", bytesPerSecond / 1048576)
+        }
+    }
 }

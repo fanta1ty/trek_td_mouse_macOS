@@ -16,6 +16,7 @@ struct DualPaneFileView: View {
     @State private var currentPreviewFile: PreviewFileInfo?
     @State private var isConnectSheetPresented: Bool = false
     @State private var showPreviewSheet: Bool = false
+    @State private var showTransferSummary: Bool = false
     @State private var isCreateLocalFolderSheetPresented = false
     @State private var isCreateSMBFolderSheetPresented = false
     @State private var activePaneIndex: Int = 0
@@ -114,6 +115,24 @@ struct DualPaneFileView: View {
                 .navigationBarTitleDisplayMode(.inline)
             }
         })
+        .sheet(isPresented: $viewModel.showTransferSummary) {
+            if let stats = viewModel.lastTransferStats {
+                TransferSummaryView(
+                    summary: .init(
+                        type: stats.transferType == .download ? .download : .upload,
+                        fileCount: -1,
+                        directoryCount: -1,
+                        totalBytes: stats.fileSize,
+                        startTime: stats.startTime,
+                        endDate: stats.endTime,
+                        isSuccess: true,
+                        errorMessage: nil,
+                        speedSamples: stats.speedSamples
+                    ),
+                    isPresented: $viewModel.showTransferSummary
+                )
+            }
+        }
         .toolbar {
             ToolbarItem {
                 Menu {
