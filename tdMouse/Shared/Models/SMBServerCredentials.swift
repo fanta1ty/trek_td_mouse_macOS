@@ -52,9 +52,9 @@ struct SMBServerCredentials: Codable, Equatable {
     )
     
     static let sample3 = SMBServerCredentials(
-        host: "10.211.55.5",
+        host: "10.211.55.3",
         port: 445,
-        username: "sambauser",
+        username: "parallels",
         password: "123456"
     )
 }

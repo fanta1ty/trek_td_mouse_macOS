@@ -12,6 +12,7 @@ struct tdMouse_iosApp: App {
     @StateObject private var smbViewModel = FileTransferViewModel()
     @StateObject private var localViewModel = LocalViewModel()
     @StateObject private var transferManager = TransferManager()
+    @StateObject private var bleManager = BLEManager()
     
     var body: some Scene {
         WindowGroup {
@@ -19,6 +20,7 @@ struct tdMouse_iosApp: App {
                 .environmentObject(smbViewModel)
                 .environmentObject(localViewModel)
                 .environmentObject(transferManager)
+                .environmentObject(bleManager)
         }
     }
 }

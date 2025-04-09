@@ -12,9 +12,11 @@ import UniformTypeIdentifiers
 struct DualPaneFileView: View {
     @EnvironmentObject private var viewModel: FileTransferViewModel
     @EnvironmentObject private var localViewModel: LocalViewModel
+    @StateObject private var bleManager = BLEManager()
     
     @State private var currentPreviewFile: PreviewFileInfo?
     @State private var isConnectSheetPresented: Bool = false
+    @State private var isBLEConnectSheetPresented: Bool = false
     @State private var showPreviewSheet: Bool = false
     @State private var showTransferSummary: Bool = false
     @State private var isCreateLocalFolderSheetPresented = false
@@ -23,6 +25,11 @@ struct DualPaneFileView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // BLE Connection Status
+            BLEConnectionStatusView(isBLEConnectSheetPresented: $isBLEConnectSheetPresented)
+            .padding(.vertical, 8)
+            .background(Color(UIColor.secondarySystemBackground))
+            
             // Connection status bar
             ConnectionStatusBarView(
                 isConnectSheetPresented: $isConnectSheetPresented
@@ -76,6 +83,12 @@ struct DualPaneFileView: View {
         .sheet(isPresented: $isConnectSheetPresented) {
             NavigationView {
                 ConnectionSheetView(isPresented: $isConnectSheetPresented)
+                    .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+        .sheet(isPresented: $isBLEConnectSheetPresented) {
+            NavigationView {
+                BLEConnectView(isPresented: $isBLEConnectSheetPresented)
                     .navigationBarTitleDisplayMode(.inline)
             }
         }
@@ -154,7 +167,6 @@ struct DualPaneFileView: View {
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
-
             }
         }
     }
