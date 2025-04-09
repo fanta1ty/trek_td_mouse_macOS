@@ -8,5 +8,7 @@
 	<string>Use Desktop</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<true/>
+    <key>NSHotspotConfigurationUsageDescription</key>
+    <string>We need to connect you to the TD Mouse WiFi network for fast file transfer.</string>
 </dict>
 </plist>
