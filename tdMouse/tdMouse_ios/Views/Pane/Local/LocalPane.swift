@@ -60,12 +60,12 @@ struct LocalPane: View {
         .onTapGesture {
             activePaneIndex = 1
         }
-        .dropDestination(for: String.self) { items, _ in
-            handleFileDrop(items)
-            return true
-        } isTargeted: { isTargeted in
-            isDropTargetActive = isTargeted
-        }
+//        .dropDestination(for: String.self) { items, _ in
+//            handleFileDrop(items)
+//            return true
+//        } isTargeted: { isTargeted in
+//            isDropTargetActive = isTargeted
+//        }
     }
 }
 

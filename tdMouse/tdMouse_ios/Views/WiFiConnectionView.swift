@@ -15,7 +15,7 @@ struct WiFiConnectionView: View {
     @State private var alertMessage = ""
     
     // TD Mouse WiFi details
-    let tdMouseSSID = "TD_Mouse_Network"
+    let tdMouseSSID = "A73PHP"
     let tdMousePassword = "password123"
     
     var body: some View {
@@ -35,7 +35,7 @@ struct WiFiConnectionView: View {
             Button(action: {
                 connectToTDMouse()
             }) {
-                Text("Connect to TD Mouse")
+                Text("Connect to TD Mousee")
                     .padding()
                     .background(Color.blue)
                     .foregroundColor(.white)

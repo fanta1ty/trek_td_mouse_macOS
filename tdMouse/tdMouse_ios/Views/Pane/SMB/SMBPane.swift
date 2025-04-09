@@ -67,12 +67,12 @@ struct SMBPane: View {
         .onTapGesture {
             activePaneIndex = 0
         }
-        .dropDestination(for: String.self) { items, _ in
-            handleFileDrop(items)
-            return true
-        } isTargeted: { isTargeted in
-            isDropTargetActive = isTargeted
-        }
+//        .dropDestination(for: String.self) { items, _ in
+//            handleFileDrop(items)
+//            return true
+//        } isTargeted: { isTargeted in
+//            isDropTargetActive = isTargeted
+//        }
     }
 }
 
@@ -140,7 +140,8 @@ extension SMBPane {
                     continue
                 }
                 
-                let url = URL(filePath: path)
+//                let url = URL(filePath: path)
+                let url = URL(string: path)!
                 
                 guard let file = localFileFromURL(url) else {
                     continue
