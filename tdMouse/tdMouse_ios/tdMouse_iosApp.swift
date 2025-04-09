@@ -15,7 +15,7 @@ struct tdMouse_iosApp: App {
     
     var body: some Scene {
         WindowGroup {
-            WiFiSelectionView()
+            WiFiConnectionView()
                 .environmentObject(smbViewModel)
                 .environmentObject(localViewModel)
                 .environmentObject(transferManager)
