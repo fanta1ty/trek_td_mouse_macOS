@@ -1,9 +1,3 @@
-//
-//  BLEConnectView.swift
-//  tdMouse_ios
-//
-//  Created by mobile on 8/4/25.
-//
 import SwiftUI
 import CoreBluetooth
 
@@ -11,24 +5,28 @@ struct BLEConnectView: View {
     @EnvironmentObject var bleManager: BLEManager
     @Binding var isPresented: Bool
     
+    private var uniqueDevices: [CBPeripheral] {
+        return Array(Set(bleManager.discoveredDevices))
+    }
+    
     var body: some View {
         NavigationView {
-            List(bleManager.discoveredDevices, id: \..identifier) { device in
+            List(uniqueDevices, id: \.identifier) { device in
                 Button(action: {
                     bleManager.connect(to: device)
                     isPresented = false
                 }) {
                     HStack {
-                        Text(device.name ?? "Unknown")
+                        Text(device.name ?? "Unknown Device")
                         Spacer()
-                        if bleManager.isConnected {
+                        if bleManager.connectedDevice?.identifier == device.identifier {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
                         }
                     }
                 }
             }
-            .navigationTitle("Connect to BLE Device")
+            .navigationTitle("Connect To Devices")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -36,6 +34,14 @@ struct BLEConnectView: View {
                     }
                 }
             }
+            .overlay(
+                Group {
+                    if uniqueDevices.isEmpty {
+                        Text("No BLE devices found")
+                            .foregroundColor(.gray)
+                    }
+                }
+            )
         }
     }
 }
@@ -46,3 +52,4 @@ struct BLEConnectView_Previews: PreviewProvider {
             .environmentObject(BLEManager())
     }
 }
+

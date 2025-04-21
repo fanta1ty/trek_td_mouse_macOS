@@ -1,9 +1,3 @@
-//
-//  BLEConnectView.swift
-//  tdMouse_ios
-//
-//  Created by mobile on 8/4/25.
-//
 import SwiftUI
 
 struct BLEConnectionStatusView: View {
@@ -20,13 +14,24 @@ struct BLEConnectionStatusView: View {
                 .font(.subheadline)
                 .foregroundColor(bleManager.isConnected ? .green : .red)
             
+            if let connectedDevice = bleManager.connectedDevice {
+                Text(connectedDevice.name ?? "Unknown Device")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
             Spacer()
             
             Button(action: {
-                isBLEConnectSheetPresented = true
+                // If connected, offer disconnect option
+                if bleManager.isConnected {
+                    bleManager.disconnect()
+                } else {
+                    isBLEConnectSheetPresented = true
+                }
             }) {
-                Image(systemName: "antenna.radiowaves.left.and.right")
-                    .foregroundColor(.blue)
+                Image(systemName: bleManager.isConnected ? "xmark.circle" : "antenna.radiowaves.left.and.right")
+                    .foregroundColor(bleManager.isConnected ? .red : .blue)
             }
         }
         .padding()

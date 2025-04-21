@@ -1,10 +1,3 @@
-//
-//  DualPaneFileView.swift
-//  tdMouse
-//
-//  Created by mobile on 30/3/25.
-//
-
 import SwiftUI
 import SMBClient
 import UniformTypeIdentifiers
@@ -26,9 +19,18 @@ struct DualPaneFileView: View {
     var body: some View {
         VStack(spacing: 0) {
             // BLE Connection Status
-            BLEConnectionStatusView(isBLEConnectSheetPresented: $isBLEConnectSheetPresented)
-            .padding(.vertical, 8)
-            .background(Color(UIColor.secondarySystemBackground))
+            VStack(spacing: 0) {
+                BLEConnectionStatusView(isBLEConnectSheetPresented: $isBLEConnectSheetPresented)
+                .padding(.vertical, 8)
+                .background(Color(UIColor.secondarySystemBackground))
+                
+                // Thêm BLEDeviceStatusView khi kết nối BLE
+                if bleManager.isConnected {
+                    BLEDeviceStatusView()
+                        .transition(.opacity)
+                        .animation(.easeInOut(duration: 0.3), value: bleManager.isConnected)
+                }
+            }
             
             // Connection status bar
             ConnectionStatusBarView(
@@ -75,10 +77,13 @@ struct DualPaneFileView: View {
                 .padding(.bottom)
             }
             
-            // Transfer status bar
-            TransferStatusBarView()
-                .padding()
-                .background(Color(UIColor.secondarySystemBackground))
+            .onAppear {
+                // Khi DualPaneFileView xuất hiện, tự động mở popup BLE
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isBLEConnectSheetPresented = true
+                }
+            }
+            
         }
         .sheet(isPresented: $isConnectSheetPresented) {
             NavigationView {
@@ -90,6 +95,7 @@ struct DualPaneFileView: View {
             NavigationView {
                 BLEConnectView(isPresented: $isBLEConnectSheetPresented)
                     .navigationBarTitleDisplayMode(.inline)
+                    .environmentObject(bleManager)
             }
         }
         .sheet(isPresented: $showPreviewSheet) {
@@ -146,6 +152,7 @@ struct DualPaneFileView: View {
                 )
             }
         }
+        .environmentObject(bleManager)
         .toolbar {
             ToolbarItem {
                 Menu {
@@ -162,6 +169,23 @@ struct DualPaneFileView: View {
                             isConnectSheetPresented = true
                         } label: {
                             Label("Connect to Server", systemImage: "link")
+                        }
+                    }
+                    
+                    // Thêm option cho BLE connection
+                    Divider()
+                    
+                    if bleManager.isConnected {
+                        Button {
+                            bleManager.disconnect()
+                        } label: {
+                            Label("Disconnect BLE", systemImage: "antenna.radiowaves.left.and.right.slash")
+                        }
+                    } else {
+                        Button {
+                            isBLEConnectSheetPresented = true
+                        } label: {
+                            Label("Connect BLE", systemImage: "antenna.radiowaves.left.and.right")
                         }
                     }
                 } label: {

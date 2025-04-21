@@ -27,7 +27,7 @@ struct TransferSummaryDetailView: View {
             Text(value)
                 .font(.subheadline)
                 .foregroundStyle(.primary)
-                .fontWeight(.medium)
+//                .fontWeight(.medium)
         }
     }
 }
