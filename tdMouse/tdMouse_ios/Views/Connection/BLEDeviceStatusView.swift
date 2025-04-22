@@ -1,123 +1,96 @@
 import SwiftUI
 
 struct BLEDeviceStatusView: View {
-    @EnvironmentObject var bleManager: BLEManager
+    @EnvironmentObject private var bleManager: BLEManager
     
     var body: some View {
-        VStack(spacing: 8) {
-            if bleManager.isConnected {
-                // First row: Battery and Device name
+        HStack(spacing: 16) {
+            // Device name and connection status
+            VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    // Battery status
-                    BatteryIndicator(percentage: bleManager.batteryLevel)
+                    Text(bleManager.connectedDeviceName)
+                        .font(.headline)
                     
-                    Spacer()
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                }
+                
+                Text("Connected")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            // WiFi status
+            VStack(alignment: .center, spacing: 2) {
+                Button(action: {
+                    bleManager.toggleWifi()
+                }) {
+                    Image(systemName: bleManager.isWifiOn ? "wifi" : "wifi.slash")
+                        .font(.system(size: 16))
+                        .foregroundColor(bleManager.isWifiOn ? .blue : .gray)
+                }
+                
+                Text("WiFi")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .frame(width: 40)
+            
+            // Battery status
+            VStack(alignment: .center, spacing: 2) {
+                HStack(spacing: 2) {
+                    Image(systemName: batteryIconName)
+                        .font(.system(size: 16))
+                        .foregroundColor(batteryColor)
                     
-                    // Connected device name
-                    Text(bleManager.connectedDevice?.name ?? "Device")
-                        .font(.subheadline)
+                    Text("\(bleManager.batteryLevel)%")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
-                // Second row: WiFi toggle
-                WiFiToggleView()
+                Text("Battery")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
+            .frame(width: 60)
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
         .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(10)
-        .opacity(bleManager.isConnected ? 1 : 0)
-        .frame(height: bleManager.isConnected ? nil : 0)
-    }
-}
-
-struct BatteryIndicator: View {
-    var percentage: Int
-    
-    private var batteryColor: Color {
-        if percentage <= 20 {
-            return .red
-        } else if percentage <= 40 {
-            return .orange
-        } else {
-            return .green
-        }
+        .cornerRadius(8)
+        .padding(.horizontal)
     }
     
-    private var batteryIcon: String {
-        if percentage <= 10 {
+    // Dynamically choose battery icon based on level
+    private var batteryIconName: String {
+        let level = bleManager.batteryLevel
+        
+        if level <= 10 {
             return "battery.0"
-        } else if percentage <= 25 {
+        } else if level <= 25 {
             return "battery.25"
-        } else if percentage <= 50 {
+        } else if level <= 50 {
             return "battery.50"
-        } else if percentage <= 75 {
+        } else if level <= 75 {
             return "battery.75"
         } else {
             return "battery.100"
         }
     }
     
-    var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: batteryIcon)
-                .foregroundColor(batteryColor)
-            
-            Text("\(percentage)%")
-                .font(.subheadline)
-                .foregroundColor(batteryColor)
-        }
-        .padding(.vertical, 4)
-        .padding(.horizontal, 8)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(UIColor.tertiarySystemBackground))
-                .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
-        )
-    }
-}
-
-struct WiFiToggleView: View {
-    @EnvironmentObject var bleManager: BLEManager
-    @State private var isWifiEnabled: Bool = false
-    
-    var body: some View {
-        HStack {
-            Image(systemName: isWifiEnabled ? "wifi" : "wifi.slash")
-                .foregroundColor(isWifiEnabled ? .blue : .gray)
-            
-            Text("Wi-Fi")
-                .font(.subheadline)
-            
-            Spacer()
-            
-            Toggle("", isOn: $isWifiEnabled)
-                .labelsHidden()
-                .onChange(of: isWifiEnabled) { newValue in
-                    bleManager.toggleWiFi(enabled: newValue)
-                }
-        }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(UIColor.tertiarySystemBackground))
-                .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
-        )
-        .onAppear {
-            isWifiEnabled = bleManager.isWiFiEnabled
-        }
-    }
-}
-
-struct BLEDeviceStatusView_Previews: PreviewProvider {
-    static var previews: some View {
-        let mockBLEManager = BLEManager()
+    // Dynamically choose battery color based on level
+    private var batteryColor: Color {
+        let level = bleManager.batteryLevel
         
-        return BLEDeviceStatusView()
-            .environmentObject(mockBLEManager)
-            .previewLayout(.sizeThatFits)
-            .padding()
+        if level <= 20 {
+            return .red
+        } else if level <= 40 {
+            return .orange
+        } else {
+            return .green
+        }
     }
 }

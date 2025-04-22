@@ -16,6 +16,12 @@ struct DualPaneFileView: View {
     @State private var isCreateSMBFolderSheetPresented = false
     @State private var activePaneIndex: Int = 0
     
+    // Alert properties
+   @State private var showAlert: Bool = false
+   @State private var alertTitle: String = ""
+   @State private var alertMessage: String = ""
+    
+    
     var body: some View {
         VStack(spacing: 0) {
             // BLE Connection Status
@@ -25,10 +31,93 @@ struct DualPaneFileView: View {
                 .background(Color(UIColor.secondarySystemBackground))
                 
                 // Thêm BLEDeviceStatusView khi kết nối BLE
+//                if bleManager.isConnected {
+//                    BLEDeviceStatusView()
+//                        .transition(.opacity)
+//                        .animation(.easeInOut(duration: 0.3), value: bleManager.isConnected)
+//                }
+                // Thêm BLEDeviceStatusView khi kết nối BLE
                 if bleManager.isConnected {
-                    BLEDeviceStatusView()
-                        .transition(.opacity)
-                        .animation(.easeInOut(duration: 0.3), value: bleManager.isConnected)
+                    VStack(spacing: 12) {
+                        BLEDeviceStatusView()
+                            .transition(.opacity)
+                            .animation(.easeInOut(duration: 0.3), value: bleManager.isConnected)
+                        
+                        // Thêm nút nhận file
+                        if !bleManager.isTransferring && !bleManager.transferCompleted {
+                            Button(action: {
+                                Task {
+                                    do {
+                                        try await bleManager.startFileTransfer()
+                                    } catch {
+                                        print("Error starting file transfer: \(error)")
+                                        alertTitle = "Transfer Error"
+                                        alertMessage = error.localizedDescription
+                                        showAlert = true
+                                    }
+                                }
+                            }) {
+                                Label("Receive File from TD Mouse", systemImage: "arrow.down.doc.fill")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .cornerRadius(10)
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        // Hiển thị progress khi đang transfer
+                        if bleManager.isTransferring {
+                            FileTransferProgressView()
+                                .transition(.opacity)
+                                .animation(.easeInOut(duration: 0.3), value: bleManager.isTransferring)
+                        }
+                        
+                        // Hiển thị thông báo khi transfer hoàn thành
+                        if bleManager.transferCompleted, let savedFileURL = bleManager.savedFileURL {
+                            VStack(spacing: 8) {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                        .font(.title2)
+                                    
+                                    Text("Transfer Complete")
+                                        .font(.headline)
+                                        .foregroundColor(.green)
+                                }
+                                
+                                Text("File saved: \(savedFileURL.lastPathComponent)")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                
+                                Button(action: {
+                                    // Reset transfer state to allow new transfers
+                                    DispatchQueue.main.async {
+                                        bleManager.transferCompleted = false
+                                        bleManager.savedFileURL = nil
+                                        // Refresh local files
+                                        localViewModel.refreshLocalFiles()
+                                    }
+                                }) {
+                                    Text("Transfer Another File")
+                                        .font(.footnote.bold())
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color.blue)
+                                        .cornerRadius(8)
+                                }
+                                .padding(.top, 4)
+                            }
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(12)
+                            .shadow(radius: 2)
+                            .padding(.horizontal)
+                        }
+                    }
                 }
             }
             
@@ -81,6 +170,14 @@ struct DualPaneFileView: View {
                 // Khi DualPaneFileView xuất hiện, tự động mở popup BLE
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     isBLEConnectSheetPresented = true
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("FileTransferCompleted"))) { notification in
+                if let userInfo = notification.userInfo,
+                   let fileURL = userInfo["fileURL"] as? URL,
+                   let fileName = userInfo["fileName"] as? String {
+                    // Refresh local files list
+                    localViewModel.refreshLocalFiles()
                 }
             }
             

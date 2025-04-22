@@ -1,4 +1,3 @@
-// FileTransferConstants.swift
 import Foundation
 
 // File Transfer Command Codes

@@ -14,11 +14,11 @@ struct BLEConnectionStatusView: View {
                 .font(.subheadline)
                 .foregroundColor(bleManager.isConnected ? .green : .red)
             
-            if let connectedDevice = bleManager.connectedDevice {
-                Text(connectedDevice.name ?? "Unknown Device")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
+//            if let connectedDevice = bleManager.connectedDevice {
+//                Text(connectedDevice.name ?? "Unknown Device")
+//                    .font(.caption)
+//                    .foregroundColor(.secondary)
+//            }
             
             Spacer()
             
